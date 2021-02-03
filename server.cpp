@@ -228,8 +228,10 @@ cSnifferServer::cSnifferServer() {
 	sqlStore = NULL;
 	terminate = false;
 	connection_threads_sync = 0;
-	sql_queue_size_size = 0;
-	sql_queue_size_time_ms = 0;
+	for(int i = 0; i < 2; i++) {
+		sql_queue_size_size[i] = 0;
+		sql_queue_size_time_ms[i] = 0;
+	}
 }
 
 cSnifferServer::~cSnifferServer() {
@@ -256,10 +258,10 @@ void cSnifferServer::sql_query_lock(list<string> *query_str, int id_main, int id
 }
 
 int cSnifferServer::findMinStoreId2(int id_main) {
-	return(sqlStore->findMinId2(id_main));
+	return(sqlStore->findMinId2(id_main, false));
 }
 
-unsigned int cSnifferServer::sql_queue_size() {
+unsigned int cSnifferServer::sql_queue_size(bool redirect) {
 	while(!sqlStore) {
 		if(is_terminating()) {
 			return(0);
@@ -267,12 +269,15 @@ unsigned int cSnifferServer::sql_queue_size() {
 		USLEEP(1000);
 	}
 	u_int64_t act_time_ms = getTimeMS_rdtsc();
-	if(act_time_ms > sql_queue_size_time_ms + 200) {
-		sql_queue_size_size = sqlStore->getAllSize(true) + 
-				      (calltable ? calltable->calls_charts_cache_queue.size() : 0);
-		sql_queue_size_time_ms = act_time_ms;
+	int size_index = redirect ? 1 : 0;
+	if(act_time_ms > sql_queue_size_time_ms[size_index] + 200) {
+		sql_queue_size_size[size_index] = redirect ?
+						   sqlStore->getAllRedirectSize(false) :
+						   sqlStore->getAllSize(false) + 
+						   (calltable ? calltable->calls_charts_cache_queue.size() : 0);
+		sql_queue_size_time_ms[size_index] = act_time_ms;
 	}
-	return(sql_queue_size_size);
+	return(sql_queue_size_size[size_index]);
 }
  
 void cSnifferServer::createConnection(cSocket *socket) {
@@ -842,7 +847,15 @@ void cSnifferServerConnection::cp_store() {
 		}
 		USLEEP(1000);
 	}
-	if(!rsaAesInit()) {
+	if(!rsaAesInit(false)) {
+		delete this;
+		return;
+	}
+	JsonExport json_ok;
+	json_ok.add("rslt", "OK");
+	json_ok.add("check_store", 1);
+	if(!socket->writeBlock(json_ok.getJson())) {
+		socket->setError("failed send ok");
 		delete this;
 		return;
 	}
@@ -851,28 +864,24 @@ void cSnifferServerConnection::cp_store() {
 	unsigned counter = 0;
 	while(!server->isTerminate() &&
 	      (query = socket->readBlock(&queryLength, cSocket::_te_aes, "", counter > 0, 0, 1024 * 1024)) != NULL) {
-		string queryStr;
-		cGzip gzipDecompressQuery;
-		cLzo lzoDecompressQuery;
-		if(gzipDecompressQuery.isCompress(query, queryLength)) {
-			queryStr = gzipDecompressQuery.decompressString(query, queryLength);
-		} else if(lzoDecompressQuery.isCompress(query, queryLength)) {
-			queryStr = lzoDecompressQuery.decompressString(query, queryLength);
-		} else {
-			queryStr = string((char*)query, queryLength);
+		if(queryLength == 5 && !strncmp((char*)query, "check", 5)) {
+			if(cp_store_check()) {
+				socket->writeBlock("OK", cSocket::_te_aes);
+			}
+			continue;
 		}
-		if(!queryStr.empty()) {
-			if(snifferServerOptions.mysql_queue_limit &&
-			   server->sql_queue_size() > snifferServerOptions.mysql_queue_limit) {
-				extern int opt_client_server_sleep_ms_if_queue_is_full;
-				JsonExport exp;
-				exp.add("error", "sql queue is full");
-				exp.add("next_attempt", true);
-				exp.add("usleep", opt_client_server_sleep_ms_if_queue_is_full * 1000);
-				exp.add("quietly", true);
-				exp.add("keep_connect", true);
-				socket->writeBlock(exp.getJson(), cSocket::_te_aes);
+		if(cp_store_check()) {
+			string queryStr;
+			cGzip gzipDecompressQuery;
+			cLzo lzoDecompressQuery;
+			if(gzipDecompressQuery.isCompress(query, queryLength)) {
+				queryStr = gzipDecompressQuery.decompressString(query, queryLength);
+			} else if(lzoDecompressQuery.isCompress(query, queryLength)) {
+				queryStr = lzoDecompressQuery.decompressString(query, queryLength);
 			} else {
+				queryStr = string((char*)query, queryLength);
+			}
+			if(!queryStr.empty()) {
 				size_t posStoreIdSeparator = queryStr.find('|');
 				if(posStoreIdSeparator != string::npos) {
 					int storeIdMain = atoi(queryStr.c_str());
@@ -917,6 +926,24 @@ void cSnifferServerConnection::cp_store() {
 		++counter;
 	}
 	delete this;
+}
+
+bool cSnifferServerConnection::cp_store_check() {
+	if((snifferServerOptions.mysql_queue_limit &&
+	    server->sql_queue_size(false) > snifferServerOptions.mysql_queue_limit) ||
+	   (snifferServerOptions.mysql_redirect_queue_limit &&
+	    server->sql_queue_size(true) > snifferServerOptions.mysql_redirect_queue_limit)) {
+		extern int opt_client_server_sleep_ms_if_queue_is_full;
+		JsonExport exp;
+		exp.add("error", "sql queue is full");
+		exp.add("next_attempt", true);
+		exp.add("usleep", opt_client_server_sleep_ms_if_queue_is_full * (300 + (rand() % 100)) / 400 * 1000ul);
+		exp.add("quietly", true);
+		exp.add("keep_connect", true);
+		socket->writeBlock(exp.getJson(), cSocket::_te_aes);
+		return(false);
+	}
+	return(true);
 }
 
 void cSnifferServerConnection::cp_packetbuffer_block() {
@@ -986,7 +1013,7 @@ void cSnifferServerConnection::cp_manager_command(string command) {
 	delete this;
 }
 
-bool cSnifferServerConnection::rsaAesInit() {
+bool cSnifferServerConnection::rsaAesInit(bool writeRsltOK) {
 	socket->generate_rsa_keys();
 	JsonExport json_rsa_key;
 	json_rsa_key.add("rsa_key", socket->get_rsa_pub_key());
@@ -1036,9 +1063,11 @@ bool cSnifferServerConnection::rsaAesInit() {
 			}
 		}
 	}
-	if(!socket->writeBlock("OK")) {
-		socket->setError("failed send ok");
-		return(false);
+	if(writeRsltOK) {
+		if(!socket->writeBlock("OK")) {
+			socket->setError("failed send ok");
+			return(false);
+		}
 	}
 	return(true);
 }

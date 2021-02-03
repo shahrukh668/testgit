@@ -1380,32 +1380,6 @@ void SqlDb::cleanFields() {
 	this->fields_type.clear();
 }
 
-void SqlDb::addDelayQuery(u_int32_t delay_ms, bool store) {
-	if(store) {
-		delayQueryStore_sum_ms += delay_ms;
-		++delayQueryStore_count;
-	} else {
-		delayQuery_sum_ms += delay_ms;
-		++delayQuery_count;
-	}
-}
-
-u_int32_t SqlDb::getAvgDelayQuery(bool store) {
-	u_int64_t _delayQuery_sum_ms = store ? delayQueryStore_sum_ms : delayQuery_sum_ms;
-	u_int32_t _delayQuery_count = store ? delayQueryStore_count : delayQuery_count;
-	return(_delayQuery_count ? _delayQuery_sum_ms / _delayQuery_count : 0);
-}
-
-void SqlDb::resetDelayQuery(bool store) {
-	if(store) {
-		delayQueryStore_sum_ms = 0;
-		delayQueryStore_count = 0;
-	} else {
-		delayQuery_sum_ms = 0;
-		delayQuery_count = 0;
-	}
-}
-
 bool SqlDb::logNeedAlter(string table, string reason, string alter,
 			 bool log, map<string, u_int64_t> *tableSize, bool *existsColumnFlag) {
 	vector<string> alters;
@@ -1564,11 +1538,9 @@ bool SqlDb::logNeedAlter(string table, string reason, vector<string> alters,
 	return(okAlter);
 }
 
-volatile u_int64_t SqlDb::delayQuery_sum_ms = 0;
-volatile u_int32_t SqlDb::delayQuery_count = 0;
-volatile u_int64_t SqlDb::delayQueryStore_sum_ms = 0;
-volatile u_int32_t SqlDb::delayQueryStore_count = 0;
-volatile u_int64_t SqlDb::query_count = 0;
+volatile u_int64_t SqlDb::delayQuery_sum_ms[3] = { 0, 0, 0 };
+volatile u_int32_t SqlDb::delayQuery_count[3] = { 0, 0, 0 };
+volatile u_int32_t SqlDb::insert_count = 0;
 
 
 SqlDb_mysql::SqlDb_mysql() {
@@ -2944,12 +2916,13 @@ MySqlStore_process::MySqlStore_process(int id_main, int id_2, MySqlStore *parent
 	if(cloud_host && *cloud_host) {
 		this->sqlDb->setCloudParameters(cloud_host, cloud_token, cloud_router);
 	}
-	pthread_mutex_init(&this->lock_mutex, NULL);
+	this->lock_sync = 0;
 	this->thread = (pthread_t)NULL;
 	this->threadRunningCounter = 0;
 	this->lastThreadRunningCounterCheck = 0;
 	this->lastThreadRunningTimeCheck = 0;
 	this->remote_socket = NULL;
+	this->check_store_supported = false;
 	this->last_store_iteration_time = 0;
 }
 
@@ -3016,6 +2989,7 @@ void MySqlStore_process::queryByRemoteSocket(const char *query_str) {
 	unsigned nextUsleepAfterError = 0;
 	bool quietlyError = false;
 	bool keepConnectAfterError = false;
+	bool needCheckStore = false;
 	sSnifferClientOptions *_snifferClientOptions = id_main == STORE_PROC_ID_CHARTS_CACHE && snifferClientOptions_charts_cache.isSetHostPort() ?
 							&snifferClientOptions_charts_cache :
 							&snifferClientOptions;
@@ -3077,9 +3051,29 @@ void MySqlStore_process::queryByRemoteSocket(const char *query_str) {
 				continue;
 			}
 			string connectResponse;
-			if(!this->remote_socket->readBlock(&connectResponse) || connectResponse != "OK") {
-				if(!this->remote_socket->isError() && connectResponse != "OK") {
-					syslog(LOG_ERR, "send store query error: %s", ("failed response from cloud router - " + connectResponse).c_str());
+			bool connectOK = false;
+			string connectError;
+			if(this->remote_socket->readBlock(&connectResponse)) {
+				if(connectResponse == "OK") {
+					connectOK = true;
+					this->check_store_supported = false;
+				} else if(isJsonObject(connectResponse)) {
+					JsonItem connectResponseData;
+					connectResponseData.parse(connectResponse);
+					if(connectResponseData.getValue("rslt") == "OK") {
+						connectOK = true;
+						this->check_store_supported = atoi(connectResponseData.getValue("check_store").c_str());
+					} else {
+						connectError = connectResponseData.getValue("error");
+					}
+				} else {
+					connectError = connectResponse;
+				}
+			}
+			if(!connectOK) {
+				if(!this->remote_socket->isError()) {
+					syslog(LOG_ERR, "send store query error: %s", 
+					       ("failed response from cloud router - " + (connectError.empty() ? "unknown error" : connectError)).c_str());
 					delete this->remote_socket;
 					this->remote_socket = NULL;
 					break;
@@ -3089,52 +3083,70 @@ void MySqlStore_process::queryByRemoteSocket(const char *query_str) {
 				}
 			}
 		}
-		string query_str_with_id = intToString(id_main) + '|' + query_str;
-		bool okSendQuery = true;
-		if(query_str_with_id.length() > 100 && _snifferClientOptions->type_compress != _cs_compress_na) {
-			if(_snifferClientOptions->type_compress == _cs_compress_gzip) {
-				cGzip gzipCompressQuery;
-				u_char *queryGzip;
-				size_t queryGzipLength;
-				if(gzipCompressQuery.compressString(query_str_with_id, &queryGzip, &queryGzipLength)) {
-					if(!this->remote_socket->writeBlock(queryGzip, queryGzipLength, cSocket::_te_aes)) {
-						okSendQuery = false;
-					}
-					delete [] queryGzip;
-				}
-			} else if(_snifferClientOptions->type_compress == _cs_compress_lzo) {
-				cLzo lzoCompressQuery;
-				u_char *queryLzo;
-				size_t queryLzoLength;
-				if(lzoCompressQuery.compress((u_char*)query_str_with_id.c_str(), query_str_with_id.length(), &queryLzo, &queryLzoLength)) {
-					if(!this->remote_socket->writeBlock(queryLzo, queryLzoLength, cSocket::_te_aes)) {
-						okSendQuery = false;
-					}
-					delete [] queryLzo;
-				}
-			}
-		} else {
-			if(!this->remote_socket->writeBlock(query_str_with_id, cSocket::_te_aes)) {
-				okSendQuery = false;
-			}
-		}
-		if(!okSendQuery) {
-			syslog(LOG_ERR, "send store query error: %s", "failed send query");
-			continue;
-		}
 		string response;
-		if(!this->remote_socket->readBlock(&response, cSocket::_te_aes)) {
-			syslog(LOG_ERR, "send store query error: %s", "failed read query response");
-			continue;
+		bool checkStoreOK = false;
+		if(this->check_store_supported && needCheckStore) {
+			if(!this->remote_socket->writeBlock("check", cSocket::_te_aes)) {
+				syslog(LOG_ERR, "send store query error: %s", "failed send check store");
+				continue;
+			}
+			if(this->remote_socket->readBlock(&response, cSocket::_te_aes)) {
+				if(response == "OK") {
+					checkStoreOK = true;
+				}
+			} else {
+				syslog(LOG_ERR, "send store query error: %s", "failed read check store response");
+				continue;
+			}
+		}
+		if(!(this->check_store_supported && needCheckStore) || checkStoreOK) {
+			string query_str_with_id = intToString(id_main) + '|' + query_str;
+			bool okSendQuery = true;
+			if(query_str_with_id.length() > 100 && _snifferClientOptions->type_compress != _cs_compress_na) {
+				if(_snifferClientOptions->type_compress == _cs_compress_gzip) {
+					cGzip gzipCompressQuery;
+					u_char *queryGzip;
+					size_t queryGzipLength;
+					if(gzipCompressQuery.compressString(query_str_with_id, &queryGzip, &queryGzipLength)) {
+						if(!this->remote_socket->writeBlock(queryGzip, queryGzipLength, cSocket::_te_aes)) {
+							okSendQuery = false;
+						}
+						delete [] queryGzip;
+					}
+				} else if(_snifferClientOptions->type_compress == _cs_compress_lzo) {
+					cLzo lzoCompressQuery;
+					u_char *queryLzo;
+					size_t queryLzoLength;
+					if(lzoCompressQuery.compress((u_char*)query_str_with_id.c_str(), query_str_with_id.length(), &queryLzo, &queryLzoLength)) {
+						if(!this->remote_socket->writeBlock(queryLzo, queryLzoLength, cSocket::_te_aes)) {
+							okSendQuery = false;
+						}
+						delete [] queryLzo;
+					}
+				}
+			} else {
+				if(!this->remote_socket->writeBlock(query_str_with_id, cSocket::_te_aes)) {
+					okSendQuery = false;
+				}
+			}
+			if(!okSendQuery) {
+				syslog(LOG_ERR, "send store query error: %s", "failed send query");
+				continue;
+			}
+			if(!this->remote_socket->readBlock(&response, cSocket::_te_aes)) {
+				syslog(LOG_ERR, "send store query error: %s", "failed read query response");
+				continue;
+			}
 		}
 		if(response == "OK") {
+			needCheckStore = false;
 			break;
 		} else {
 			bool next_attempt = true;
 			string error;
 			if(response.empty()) {
 				error = "response is empty";
-			} else if(response[0] == '{' && response[response.length() - 1] == '}') {
+			} else if(isJsonObject(response)) {
 				JsonItem jsonResponse;
 				jsonResponse.parse(response);
 				error = jsonResponse.getValue("error");
@@ -3144,7 +3156,7 @@ void MySqlStore_process::queryByRemoteSocket(const char *query_str) {
 				}
 				string usleep_str = jsonResponse.getValue("usleep");
 				if(!usleep_str.empty()) {
-					nextUsleepAfterError = atol(usleep_str.c_str());
+					nextUsleepAfterError = atoll(usleep_str.c_str());
 				}
 				string quietly_str = jsonResponse.getValue("quietly");
 				if(!quietly_str.empty()) {
@@ -3154,6 +3166,7 @@ void MySqlStore_process::queryByRemoteSocket(const char *query_str) {
 				if(!keep_connect_str.empty()) {
 					keepConnectAfterError = atoi(keep_connect_str.c_str());
 				}
+				needCheckStore = true;
 			} else {
 				error = response;
 			}
@@ -3234,7 +3247,9 @@ void MySqlStore_process::store() {
 					#if TEST_SERVER_STORE_SPEED
 					SqlDb::addDelayQuery(10);
 					#else
+					u_int32_t startTimeMS = getTimeMS();
 					this->sqlDb->query(query);
+					SqlDb::addDelayQuery(getTimeMS() - startTimeMS, SqlDb::_tq_redirect);
 					lastQueryTime = getTimeMS_rdtsc() / 1000;
 					#endif
 				} else {
@@ -3355,7 +3370,7 @@ void MySqlStore_process::_store(string beginProcedure, string endProcedure, list
 		__store(beginProcedure, endProcedure, queries_str);
 	}
 	unsigned long endTimeMS = getTimeMS();
-	SqlDb::addDelayQuery(endTimeMS - startTimeMS, true);
+	SqlDb::addDelayQuery(endTimeMS - startTimeMS, SqlDb::_tq_store);
 	if(sverb.store_process_query_compl_time) {
 		sumTimeMS += (endTimeMS -startTimeMS);
 		cout << "store_process_query_compl_" << this->id_main << "_" << this->id_2 << endl
@@ -3364,7 +3379,7 @@ void MySqlStore_process::_store(string beginProcedure, string endProcedure, list
 }
 
 void MySqlStore_process::__store(list<string> *queries) {
-	SqlDb::addQueryCount(queries->size());
+	SqlDb::addCountInsert(queries->size());
 	if(this->parentStore->isCloud() && useNewStore()) {
 		string queries_str;
 		for(list<string>::iterator iter = queries->begin(); iter != queries->end(); iter++) {
@@ -3385,19 +3400,12 @@ void MySqlStore_process::__store(list<string> *queries) {
 		if(sverb.store_process_query_compl) {
 			cout << "store_process_query_compl_" << this->id_main << "_" << this->id_2 << endl;
 		}
-		for(list<string>::iterator iter = queries_list.begin(); iter != queries_list.end(); iter++) {
-			if(sverb.store_process_query_compl) {
-				cout << *iter << endl;
-			}
-			if(id_main == STORE_PROC_ID_CDR && opt_mysql_mysql_redirect_cdr_queue) {
-				static volatile unsigned _redirect_counter;
-				//extern int opt_mysqlstore_max_threads_cdr;
-				parentStore->query_lock(*iter, STORE_PROC_ID_CDR_REDIRECT, 
-							parentStore->findMinId2(STORE_PROC_ID_CDR_REDIRECT)
-							//_redirect_counter % opt_mysqlstore_max_threads_cdr
-							);
-				++_redirect_counter;
-			} else {
+		if(id_main == STORE_PROC_ID_CDR && opt_mysql_mysql_redirect_cdr_queue) {
+			parentStore->query_lock(&queries_list, STORE_PROC_ID_CDR_REDIRECT, 
+						parentStore->findMinId2(STORE_PROC_ID_CDR_REDIRECT, false),
+						100);
+		} else {
+			for(list<string>::iterator iter = queries_list.begin(); iter != queries_list.end(); iter++) {
 				#if TEST_SERVER_STORE_SPEED
 				SqlDb::addDelayQuery(10);
 				#else
@@ -3516,14 +3524,6 @@ void MySqlStore_process::_exportToFileSqlFormat(FILE *file, string queries) {
 	      ";;\n"
 	      "delimiter ;\n", file);
 	fprintf(file, "call %s();\n", procedureName.c_str());
-}
-
-void MySqlStore_process::lock() {
-	pthread_mutex_lock(&this->lock_mutex);
-}
-
-void MySqlStore_process::unlock() {
-	pthread_mutex_unlock(&this->lock_mutex);
 }
 
 void MySqlStore_process::setEnableTerminatingDirectly(bool enableTerminatingDirectly) {
@@ -3774,7 +3774,7 @@ void MySqlStore::query_lock(const char *query_str, int id_main, int id_2) {
 	}
 }
 
-void MySqlStore::query_lock(list<string> *query_str, int id_main, int id_2) {
+void MySqlStore::query_lock(list<string> *query_str, int id_main, int id_2, int change_id_2_after) {
 	if(!query_str->size()) {
 		return;
 	}
@@ -3785,10 +3785,17 @@ void MySqlStore::query_lock(list<string> *query_str, int id_main, int id_2) {
 	} else {
 		MySqlStore_process* process = this->find(id_main, id_2);
 		process->lock();
+		unsigned counter = 0;
 		for(list<string>::iterator iter = query_str->begin(); iter != query_str->end(); iter++) {
+			if(counter && change_id_2_after && !(counter % change_id_2_after)) {
+				process->unlock();
+				id_2 = findMinId2(id_main, false);
+				process->lock();
+			}
 			for(int i = 0; i < max(sverb.multiple_store && id_main != 99 ? sverb.multiple_store : 0, 1); i++) {
 				process->query(iter->c_str());
 			}
+			++counter;
 		}
 		process->unlock();
 	}
@@ -4379,25 +4386,31 @@ MySqlStore_process *MySqlStore::check(int id_main, int id_2) {
 	return(process);
 }
 
-size_t MySqlStore::getAllSize(bool lock) {
+size_t MySqlStore::getAllSize(bool lock, bool redirect) {
 	size_t size = 0;
 	map<int, MySqlStore_process*>::iterator iter;
 	this->lock_processes();
 	map<int, map<int, MySqlStore_process*> >::iterator iter1;
 	map<int, MySqlStore_process*>::iterator iter2;
 	for(iter1 = this->processes.begin(); iter1 != this->processes.end(); ++iter1) {
-		for(iter2 = iter1->second.begin(); iter2 != iter1->second.end(); ++iter2) {
-			if(lock) {
-				iter2->second->lock();
-			}
-			size += iter2->second->getSize();
-			if(lock) {
-				iter2->second->unlock();
+		if(!redirect || this->isRedirectStoreId(iter1->first)) {
+			for(iter2 = iter1->second.begin(); iter2 != iter1->second.end(); ++iter2) {
+				if(lock) {
+					iter2->second->lock();
+				}
+				size += iter2->second->getSize();
+				if(lock) {
+					iter2->second->unlock();
+				}
 			}
 		}
 	}
 	this->unlock_processes();
 	return(size);
+}
+
+size_t MySqlStore::getAllRedirectSize(bool lock) {
+	return(getAllSize(lock, true));
 }
 
 int MySqlStore::getSize(int id_main, int id_2, bool lock) {
@@ -4568,13 +4581,13 @@ string MySqlStore::getSqlVmExportDirectory() {
 	return(getSqlVmExportDir());
 }
 
-int MySqlStore::findMinId2(int id_main) {
+int MySqlStore::findMinId2(int id_main, bool lock) {
 	int id_2 = 0;
 	int maxThreads = getMaxThreadsForStoreId(id_main);
 	if(maxThreads > 1) {
 		ssize_t id_2_minSize = -1;
 		for(int i = 0; i < maxThreads; i++) {
-			int qtSize = this->getSize(id_main, i);
+			int qtSize = this->getSize(id_main, i, lock);
 			if(qtSize < 0) {
 				qtSize = 0;
 			}
@@ -4670,6 +4683,10 @@ int MySqlStore::getConcatLimitForStoreId(int id_main) {
 		break;
 	}
 	return(concatLimit);
+}
+
+bool MySqlStore::isRedirectStoreId(int id_main) {
+	return(id_main == STORE_PROC_ID_CDR_REDIRECT);
 }
 
 void *MySqlStore::threadQFilesCheckPeriod(void *arg) {
