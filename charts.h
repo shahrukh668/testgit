@@ -6,6 +6,7 @@
 #include <queue>
 #include <map>
 
+#include "config.h"
 #include "sql_db.h"
 #include "calltable.h"
 #include "tools_global.h"
@@ -70,7 +71,11 @@ enum eChartType {
 	_chartType_IP_src,
 	_chartType_IP_dst,
 	_chartType_domain_src,
-	_chartType_domain_dst
+	_chartType_domain_dst,
+	_chartType_rtcp_avgrtd,
+	_chartType_rtcp_maxrtd,
+	_chartType_rtcp_avgrtd_w,
+	_chartType_rtcp_maxrtd_w
 };
 
 enum eChartSubType {

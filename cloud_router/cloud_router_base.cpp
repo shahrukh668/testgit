@@ -359,26 +359,22 @@ bool cSocket::connect(unsigned loopSleepS) {
 			rslt = false;
 			continue;
 		}
-		for (uint i = 0; i < ips.size(); i++) {
-			rslt = true;
+		bool ok_connect = false;
+		for(uint i = 0; i < ips.size() && !ok_connect; i++) {
 			clearError();
-			ip.clear();
 			ip = ips[i];
-			int pass_call_socket = 0;
+			int pass_call_socket_create = 0;
 			do {
 				handle = socket_create(ip, SOCK_STREAM, IPPROTO_TCP);
-				++pass_call_socket;
-			} while(handle == 0 && pass_call_socket < 5);
+				++pass_call_socket_create;
+			} while(handle == 0 && pass_call_socket_create < 5);
 			if(handle == -1) {
 				if(CR_VERBOSE().socket_connect) {
 					ostringstream verbstr;
 					verbstr << "cannot create socket (" << name << ")";
 					syslog(LOG_ERR, "%s", verbstr.str().c_str());
 				}
-				rslt = false;
-				continue;
-			}
-			if(socket_connect(handle, ip, port) == -1) {
+			} else if(socket_connect(handle, ip, port) == -1) {
 				if(CR_VERBOSE().socket_connect) {
 					ostringstream verbstr;
 					verbstr << "failed to connect to server [" << host << "] resolved to ip "
@@ -386,21 +382,17 @@ bool cSocket::connect(unsigned loopSleepS) {
 					syslog(LOG_ERR, "%s", verbstr.str().c_str());
 				}
 				close();
-				rslt = false;
-				continue;
+			} else {
+				ok_connect = true;
 			}
 		}
-		if (!rslt) {
-			setError("failed connection to all possible ips (%u) of the server %s : last error:[%s]", ips.size(), host.c_str(), strerror(errno));
-			continue;
-		}
-		int on = 1;
-		setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(int));
-		int flags = fcntl(handle, F_GETFL, 0);
-		if(flags >= 0) {
-			fcntl(handle, F_SETFL, flags | O_NONBLOCK);
-		}
-		if(rslt) {
+		if(ok_connect) {
+			int on = 1;
+			setsockopt(handle, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(int));
+			int flags = fcntl(handle, F_GETFL, 0);
+			if(flags >= 0) {
+				fcntl(handle, F_SETFL, flags | O_NONBLOCK);
+			}
 			if(CR_VERBOSE().socket_connect) {
 				ostringstream verbstr;
 				verbstr << "OK connect (" << name << ")"
@@ -408,10 +400,23 @@ bool cSocket::connect(unsigned loopSleepS) {
 					<< " handle " << handle;
 				syslog(LOG_INFO, "%s", verbstr.str().c_str());
 			}
+			rslt = true;
+		} else {
+			string ips_str;
+			for(uint i = 0; i < ips.size(); i++) {
+				if(i > 0) {
+					ips_str += ",";
+				}
+				ips_str += ips[i].getString();
+			}
+			setError("failed connection to %s (%s) of the server %s : last error:[%s]", 
+				 ips.size() > 1 ? "all possible ips" : "ip",
+				 ips_str.c_str(), host.c_str(), 
+				 strerror(errno));
+			rslt = false;
 		}
-		
 	} while(!rslt && loopSleepS && !(terminate || CR_TERMINATE()));
-	return(true);
+	return(rslt);
 }
 
 bool cSocket::listen() {
@@ -838,7 +843,24 @@ void cSocket::sleep(int s) {
 
 cSocketBlock::cSocketBlock(const char *name, bool autoClose)
  : cSocket(name, autoClose) {
-       
+	block_header_string = NULL;
+}
+
+cSocketBlock::~cSocketBlock() {
+	if(block_header_string) {
+		delete [] block_header_string;
+	}
+}
+
+void cSocketBlock::setBlockHeaderString(const char *block_header_string) {
+	if(this->block_header_string) {
+		delete [] this->block_header_string;
+		this->block_header_string = NULL;
+	}
+	if(block_header_string) {
+		this->block_header_string = new FILE_LINE(0) char[strlen(block_header_string) + 1];
+		strcpy(this->block_header_string, block_header_string);
+	}
 }
 
 bool cSocketBlock::writeBlock(u_char *data, size_t dataLen, eTypeEncode typeEncode, string xor_key) {
@@ -870,7 +892,7 @@ bool cSocketBlock::writeBlock(u_char *data, size_t dataLen, eTypeEncode typeEnco
 		}
 	}
 	u_char *block = new FILE_LINE(0) u_char[sizeof(sBlockHeader) + dataLen];
-	((sBlockHeader*)block)->init();
+	((sBlockHeader*)block)->init(block_header_string);
 	((sBlockHeader*)block)->length = dataLen;
 	((sBlockHeader*)block)->sum = data_sum;
 	memcpy(block + sizeof(sBlockHeader), data, dataLen);
@@ -910,7 +932,7 @@ u_char *cSocketBlock::readBlock(size_t *dataLen, eTypeEncode typeEncode, string 
 				readBuffer.incLength(readLength);
 				if(!blockHeaderOK) {
 					if(readBuffer.length >= sizeof(sBlockHeader)) {
-						if(readBuffer.okBlockHeader()) {
+						if(readBuffer.okBlockHeader(block_header_string)) {
 							blockHeaderOK = true;
 						} else {
 							rsltRead = false;
@@ -1162,7 +1184,9 @@ void cServer::listen_stop(unsigned index) {
 void *cServer::listen_process(void *arg) {
 	if(CR_VERBOSE().start_server) {
 		ostringstream verbstr;
-		verbstr << "START SERVER LISTEN";
+		verbstr << (((sListenParams*)arg)->server->startVerbString.empty() ? 
+			     "START SERVER LISTEN" : 
+			     ((sListenParams*)arg)->server->startVerbString);
 		syslog(LOG_INFO, "%s", verbstr.str().c_str());
 	}
 	((sListenParams*)arg)->server->listen_process(((sListenParams*)arg)->index);
@@ -1199,6 +1223,10 @@ void cServer::listen_process(int index) {
 void cServer::createConnection(cSocket *socket) {
 	cServerConnection *connection = new FILE_LINE(0) cServerConnection(socket);
 	connection->connection_start();
+}
+
+void cServer::setStartVerbString(const char *startVerbString) {
+	this->startVerbString = startVerbString ? startVerbString : "";
 }
 
 

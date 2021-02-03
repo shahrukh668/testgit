@@ -6782,7 +6782,8 @@ cEvalFormula::sValue cEvalFormula::sValue::like(sValue &pattern_v) {
 	return(sValue(false));
 }
 
-cEvalFormula::sValue cEvalFormula::e(const char *formula, unsigned pos, unsigned length, unsigned level, sSplitOperands *splitOperands) {
+cEvalFormula::sValue cEvalFormula::e(const char *formula, unsigned pos, unsigned length, unsigned level, sSplitOperands *splitOperands,
+				     int operator_level_lt, int *pos_return) {
 	if(!length) {
 		length = strlen(formula + pos);
 	}
@@ -6844,6 +6845,13 @@ cEvalFormula::sValue cEvalFormula::e(const char *formula, unsigned pos, unsigned
 		if(!operator1) {
 			return(operand1);
 		} else {
+			if(pos_return &&
+			   operator_level_lt >= 0 &&
+			   operator1->level >= (unsigned)operator_level_lt) {
+				 *pos_return = pos_operand1_end;
+				 if(debug) debug_output(level, "<-");
+				 return(operand1);
+			}
 			if(splitOperands) {
 				splitOperands->b_operators[splitOperands->operands_count - 1] = operator1->e_oper;
 			}
@@ -6914,13 +6922,20 @@ cEvalFormula::sValue cEvalFormula::e(const char *formula, unsigned pos, unsigned
 					}
 					splitOperand2 = new FILE_LINE(0) sSplitOperands(0);
 				}
-				operand2 = e(formula, pos_operator1_end, 0, level + 1, splitOperands ? splitOperand2 : NULL);
+				int pos_return = -1;
+				operand2 = e(formula, pos_operator1_end, 0, level + 1, splitOperands ? splitOperand2 : NULL,
+					     operator1->level, &pos_return);
 				if(splitOperands) {
 					splitOperands->addOperand(splitOperand2);
 				}
 				sValue rslt = e_b_operator(operand1, operand2, operator1);
 				if(debug) debug_output(level, "RSLT: " + rslt.getString());
-				return(rslt);
+				if(pos_return != -1) {
+					operand1 = rslt;
+					pos = pos_return;
+				} else {
+					return(rslt);
+				}
 			} else {
 				operand1 = e_b_operator(operand1, operand2, operator1);
 				pos = pos_operand2_end;
@@ -7980,8 +7995,8 @@ bool getInterfaceOption(const char *param, const char *searchstr, const char *if
 			return(true);
 		}
 	}
-	printf("Can't get value from 'ethtool %s %s'. This is not a fatal error.\n", param, iface);
-	syslog(LOG_NOTICE, "Can't get value from 'ethtool %s %s'. This is not a fatal error.", param, iface);
+	printf("Can't get value from 'ethtool %s %s'. This is not a fatal error. Some NICs don't support it.\n", param, iface);
+	syslog(LOG_NOTICE, "Can't get value from 'ethtool %s %s'. This is not a fatal error. Some NICs don't support it.", param, iface);
 	return(false);
 }
 
@@ -7995,8 +8010,8 @@ void setInterfaceOption(const char *param, const char *option, const char *iface
 		printf("'ethtool %s %s %s %i' successful.\n", param, iface, option, value);
 		syslog(LOG_NOTICE, "'ethtool %s %s %s %i' successful.", param, iface, option, value);
 	} else {
-		printf("Can't set interface 'ethtool %s %s %s %i': %i. This is not a fatal error.\n", param, iface, option, value, retval);
-		syslog(LOG_NOTICE, "Can't set interface 'ethtool %s %s %s %i': %i. This is not a fatal error.", param, iface, option, value, retval);
+		printf("Can't set interface 'ethtool %s %s %s %i': %i. This is not a fatal error. Some NICs don't support it.\n", param, iface, option, value, retval);
+		syslog(LOG_NOTICE, "Can't set interface 'ethtool %s %s %s %i': %i. This is not a fatal error. Some NICs don't support it.", param, iface, option, value, retval);
 	}
 }
 

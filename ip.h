@@ -1,7 +1,9 @@
 #ifndef IP_H
 #define IP_H
 
+#if defined(CLOUD_ROUTER_SERVER) or defined(CLOUD_ROUTER_CLIENT)
 #include "config.h"
+#endif
 
 #ifndef VM_IPV6
 #define VM_IPV6 true
@@ -138,10 +140,14 @@ struct vmIP {
 			return((ip.v4.n >> 8) == 0x7F0000);
 		#if VM_IPV6
 		} else {
-			return(ip.v6.__in6_u.__u6_addr32[0] == 0 &&
-			       ip.v6.__in6_u.__u6_addr32[1] == 0 &&
-			       ip.v6.__in6_u.__u6_addr32[2] == 0 &&
-			       ip.v6.__in6_u.__u6_addr32[3] == 1);
+			return((ip.v6.__in6_u.__u6_addr32[0] == 0 &&
+				ip.v6.__in6_u.__u6_addr32[1] == 0 &&
+				ip.v6.__in6_u.__u6_addr32[2] == 0 &&
+				ip.v6.__in6_u.__u6_addr32[3] == 1) ||
+			       (ip.v6.__in6_u.__u6_addr32[0] == 0 &&
+				ip.v6.__in6_u.__u6_addr32[1] == 0 &&
+				ip.v6.__in6_u.__u6_addr32[2] == 0xFFFF &&
+				(ip.v6.__in6_u.__u6_addr32[3] >> 8) == 0x7F0000));
 		}
 		#endif
 	}

@@ -251,6 +251,10 @@ Register::Register(Call *call) {
 	countStates = 0;
 	rrd_sum = 0;
 	rrd_count = 0;
+	reg_call_id = call->call_id;
+	if(call->reg_tcp_seq) {
+		reg_tcp_seq = *call->reg_tcp_seq;
+	}
 	_sync_states = 0;
 }
 
@@ -304,6 +308,12 @@ void Register::update(Call *call) {
 	sipcallerip = call->sipcallerip[0];
 	sipcalledip = call->sipcalledip[0];
 	vlan = call->vlan;
+	reg_call_id = call->call_id;
+	if(call->reg_tcp_seq) {
+		reg_tcp_seq = *call->reg_tcp_seq;
+	} else {
+		reg_tcp_seq.clear();
+	}
 }
 
 void Register::addState(Call *call) {
@@ -548,13 +558,13 @@ void Register::saveStateToDb(RegisterState *state, bool enableBatchIfPossible) {
 		query_str += MYSQL_ADD_QUERY_END(MYSQL_MAIN_INSERT_GROUP +
 			     sqlDbSaveRegister->insertQuery(register_table, reg, false, false, state->state == rs_Failed));
 		static unsigned int counterSqlStore = 0;
-		int storeId = STORE_PROC_ID_REGISTER_1 + 
-			      (opt_mysqlstore_max_threads_register > 1 &&
-			       sqlStore->getSize(STORE_PROC_ID_REGISTER_1) > 1000 ? 
-				counterSqlStore % opt_mysqlstore_max_threads_register : 
-				0);
+		sqlStore->query_lock(query_str.c_str(),
+				     STORE_PROC_ID_REGISTER,
+				     opt_mysqlstore_max_threads_register > 1 &&
+				     sqlStore->getSize(STORE_PROC_ID_REGISTER, 0) > 1000 ? 
+				      counterSqlStore % opt_mysqlstore_max_threads_register : 
+				      0);
 		++counterSqlStore;
-		sqlStore->query_lock(query_str.c_str(), storeId);
 	} else {
 		if(!adj_ua.empty()) {
 			reg.add(dbData->getCbId(cSqlDbCodebook::_cb_ua, adj_ua.c_str(), true), "ua_id");
@@ -589,13 +599,13 @@ void Register::saveFailedToDb(RegisterState *state, bool force, bool enableBatch
 					string query_str = sqlDbSaveRegister->updateQuery("register_failed", row, 
 											  ("ID = " + intToString(state->db_id)).c_str());
 					static unsigned int counterSqlStore = 0;
-					int storeId = STORE_PROC_ID_REGISTER_1 + 
-						      (opt_mysqlstore_max_threads_register > 1 &&
-						       sqlStore->getSize(STORE_PROC_ID_REGISTER_1) > 1000 ? 
-							counterSqlStore % opt_mysqlstore_max_threads_register : 
-							0);
+					sqlStore->query_lock(MYSQL_ADD_QUERY_END(query_str),
+							     STORE_PROC_ID_REGISTER,
+							     opt_mysqlstore_max_threads_register > 1 &&
+							     sqlStore->getSize(STORE_PROC_ID_REGISTER, 0) > 1000 ? 
+							      counterSqlStore % opt_mysqlstore_max_threads_register : 
+							      0);
 					++counterSqlStore;
-					sqlStore->query_lock(MYSQL_ADD_QUERY_END(query_str), storeId);
 				} else {
 					sqlDbSaveRegister->update("register_failed", row, 
 								  ("ID = " + intToString(state->db_id)).c_str());
@@ -757,6 +767,29 @@ void Registers::add(Call *call) {
 	};
 	cout << getDataTableJson(states, 0, rf_calldate, false) << endl;
 	*/
+}
+
+bool Registers::existsDuplTcpSeqInRegOK(Call *call, u_int32_t seq) {
+	if(!seq) {
+		return(false);
+	}
+	Register *reg = new FILE_LINE(20004) Register(call);
+	RegisterId rid(reg);
+	bool rslt = false;
+	lock_registers();
+	map<RegisterId, Register*>::iterator iter = registers.find(rid);
+	if(iter != registers.end()) {
+		Register *existsReg = iter->second;
+		if(existsReg->getState() == rs_OK &&
+		   existsReg->reg_call_id == call->call_id &&
+		   existsReg->reg_tcp_seq.size() &&
+		   std::find(existsReg->reg_tcp_seq.begin(), existsReg->reg_tcp_seq.end(), seq) != existsReg->reg_tcp_seq.end()) {
+			rslt = true;
+		}
+	}
+	unlock_registers();
+	delete reg;
+	return(rslt);
 }
 
 void Registers::cleanup(struct timeval *act_time, bool force, int expires_add) {
@@ -1027,7 +1060,12 @@ string Registers::getDataTableJson(char *params, bool *zip) {
 		}
 		u_int32_t counter = 0;
 		while(counter < records.size() && iter_rec != records.end()) {
-			table += "," + iter_rec->getJson();
+			string rec_json = iter_rec->getJson();
+			extern cUtfConverter utfConverter;
+			if(!utfConverter.check(rec_json.c_str())) {
+				rec_json = utfConverter.remove_no_ascii(rec_json.c_str());
+			}
+			table += "," + rec_json;
 			if(sortDesc) {
 				if(iter_rec != records.begin()) {
 					iter_rec--;

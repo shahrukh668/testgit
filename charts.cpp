@@ -41,6 +41,10 @@ static sChartTypeDef ChartTypeDef[] = {
 	{ _chartType_rtcp_maxjitter,		0,	1,	_chartPercType_Asc,	0,	_chartSubType_value },
 	{ _chartType_rtcp_avgfr,		0,	1,	_chartPercType_Asc,	0,	_chartSubType_value },
 	{ _chartType_rtcp_maxfr,		0,	1,	_chartPercType_Asc,	0,	_chartSubType_value },
+	{ _chartType_rtcp_avgrtd,		0,	1,	_chartPercType_Asc,	0,	_chartSubType_value },
+	{ _chartType_rtcp_maxrtd,		0,	1,	_chartPercType_Asc,	0,	_chartSubType_value },
+	{ _chartType_rtcp_avgrtd_w,		0,	1,	_chartPercType_Asc,	0,	_chartSubType_value },
+	{ _chartType_rtcp_maxrtd_w,		0,	1,	_chartPercType_Asc,	0,	_chartSubType_value },
 	{ _chartType_silence,			0,	1,	_chartPercType_Asc,	0,	_chartSubType_value },
 	{ _chartType_silence_caller,		0,	1,	_chartPercType_Asc,	0,	_chartSubType_value },
 	{ _chartType_silence_called,		0,	1,	_chartPercType_Asc,	0,	_chartSubType_value },
@@ -519,7 +523,7 @@ void cChartDataPool::add(sChartsCallData *call, unsigned call_interval, bool fir
 
 string cChartDataPool::json(class cChartSeries *series, cChartInterval *interval) {
 	unsigned int max = 0;
-	unsigned int min = UINT_MAX;
+	unsigned int min = series->def.chartType == _chartType_cps ? 0 : UINT_MAX;
 	unsigned int sum = 0;
 	unsigned int count = 0;
 	string pool_str = "[";
@@ -565,6 +569,9 @@ string cChartDataPool::json(class cChartSeries *series, cChartInterval *interval
 		break;
 	case _chartType_count:
 	case _chartType_cps:
+		if(series->def.chartType == _chartType_cps) {
+			count = interval->timeTo - interval->timeFrom;
+		}
 		if(count > 0) {
 			JsonExport exp;
 			exp.add("_", "mia");
@@ -780,7 +787,7 @@ void cChartIntervalSeriesData::store(cChartInterval *interval, SqlDb *sqlDb) {
 		insert_str = MYSQL_ADD_QUERY_END(MYSQL_MAIN_INSERT +
 			     sqlDb->insertQuery("chart_sniffer_series_cache", cache_row, false, false, true, &cache_row_update));
 	}
-	sqlStore->query_lock(insert_str.c_str(), STORE_PROC_ID_CHARTS_CACHE_1);
+	sqlStore->query_lock(insert_str.c_str(), STORE_PROC_ID_CHARTS_CACHE, 0);
 	++store_counter;
 }
 
@@ -1684,6 +1691,10 @@ eChartType chartTypeFromString(string chartType) {
 	       chartType == "TCH_rtcp_maxjitter" ? _chartType_rtcp_maxjitter :
 	       chartType == "TCH_rtcp_avgfr" ? _chartType_rtcp_avgfr :
 	       chartType == "TCH_rtcp_maxfr" ? _chartType_rtcp_maxfr :
+	       chartType == "TCH_rtcp_avgrtd" ? _chartType_rtcp_avgrtd :
+	       chartType == "TCH_rtcp_maxrtd" ? _chartType_rtcp_maxrtd :
+	       chartType == "TCH_rtcp_avgrtd_w" ? _chartType_rtcp_avgrtd_w :
+	       chartType == "TCH_rtcp_maxrtd_w" ? _chartType_rtcp_maxrtd_w :
 	       chartType == "TCH_silence" ? _chartType_silence :
 	       chartType == "TCH_silence_caller" ? _chartType_silence_caller :
 	       chartType == "TCH_silence_called" ? _chartType_silence_called :

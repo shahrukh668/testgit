@@ -2100,6 +2100,7 @@ RTP::read(unsigned char* data, iphdr2 *header_ip, unsigned *len, struct pcap_pkt
 					owner->handle_dtmf(event_digit, ts2double(header->ts.tv_sec, header->ts.tv_usec), saddr, daddr, s_dtmf::inband);
 				}
 				if (do_fasdetect) {
+					//syslog(LOG_ERR, "fas detected");
 					owner->is_fas_detected = (res_call_progress == AST_CONTROL_RINGING) ? true : false;
 				}
 			}
@@ -2175,10 +2176,10 @@ RTP::update_stats() {
 	   s->max_seq - this->last_seq >= lost) {
 		Call *owner = (Call*)call_owner;
 		u_int16_t maxSeqOtherSsrc = 0;
-		for(int i = 0; i < owner->ssrc_n; i++) {
-			if(owner->rtp[i] != this && owner->rtp[i]->ssrc == this->ssrc) {
-				if(owner->rtp[i]->s->max_seq > maxSeqOtherSsrc) {
-					maxSeqOtherSsrc = owner->rtp[i]->s->max_seq;
+		for(int i = 0; i < owner->rtp_size(); i++) { RTP *rtp_i = owner->rtp_stream_by_index(i);
+			if(rtp_i != this && rtp_i->ssrc == this->ssrc) {
+				if(rtp_i->s->max_seq > maxSeqOtherSsrc) {
+					maxSeqOtherSsrc = rtp_i->s->max_seq;
 				}
 			}
 		}
@@ -3193,15 +3194,13 @@ RTPstat::flush_and_clean(map<vmIP, node_t> *cmap, bool needLock) {
 	//TODO enableBatchIfPossible
 	if(!opt_nocdr && isSqlDriver("mysql") && !query_str.empty()) {
 		static unsigned int counterSqlStore = 0;
-		int storeId = STORE_PROC_ID_CDR_1 +
-			      (opt_mysqlstore_max_threads_cdr > 1 &&
-			       sqlStore->getSize(STORE_PROC_ID_CDR_1) > 1000 ?
-				counterSqlStore % opt_mysqlstore_max_threads_cdr :
-				0);
-		//cout << query_str << "\n";
-		
+		sqlStore->query_lock(query_str.c_str(),
+				     STORE_PROC_ID_CDR,
+				     opt_mysqlstore_max_threads_cdr > 1 &&
+				     sqlStore->getSize(STORE_PROC_ID_CDR, 0) > 1000 ?
+				      counterSqlStore % opt_mysqlstore_max_threads_cdr :
+				      0);
 		++counterSqlStore;
-		sqlStore->query_lock(query_str.c_str(), storeId);
 	}
 }
 

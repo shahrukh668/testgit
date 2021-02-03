@@ -335,6 +335,7 @@ char opt_energylevelheader[128] = "";
 int opt_vlan_siprtpsame = 0;
 int opt_rtpfromsdp_onlysip = 0;
 int opt_rtpfromsdp_onlysip_skinny = 1;
+int opt_rtp_streams_max_in_call = 1000;
 int opt_rtp_check_both_sides_by_sdp = 0;
 char opt_keycheck[1024] = "";
 bool opt_charts_cache = false;
@@ -428,6 +429,7 @@ int opt_mysql_max_multiple_rows_insert = 20;
 int opt_mysql_enable_new_store = 0;
 bool opt_mysql_enable_set_id = false;
 bool opt_csv_store_format = false;
+bool opt_mysql_mysql_redirect_cdr_queue = false;
 int opt_cdr_sip_response_number_max_length = 0;
 vector<string> opt_cdr_sip_response_reg_remove;
 int opt_cdr_ua_enable = 1;
@@ -539,6 +541,7 @@ int opt_pcap_dump_writethreads = 1;
 int opt_pcap_dump_writethreads_max = 32;
 int opt_pcap_dump_asyncwrite_maxsize = 100; //MB
 int opt_pcap_dump_tar = 1;
+bool opt_pcap_dump_tar_use_hash_instead_of_long_callid = 1;
 int opt_pcap_dump_tar_threads = 8;
 int opt_pcap_dump_tar_compress_sip = 1; //0 off, 1 gzip, 2 lzma
 int opt_pcap_dump_tar_sip_level = 6;
@@ -879,6 +882,8 @@ char *ssl_client_random_portmatrix;
 bool ssl_client_random_portmatrix_set = false;
 vector<vmIP> ssl_client_random_ip;
 vector<vmIPmask> ssl_client_random_net;
+string ssl_client_random_tcp_host;
+int ssl_client_random_tcp_port;
 int ssl_client_random_maxwait_ms = 0;
 char ssl_master_secret_file[1024];
 
@@ -1102,6 +1107,7 @@ int opt_numa_balancing_set = numa_balancing_set_autodisable;
 int opt_mirror_connect_maximum_time_diff_s = 2;
 int opt_client_server_connect_maximum_time_diff_s = 2;
 int opt_receive_packetbuffer_maximum_time_diff_s = 30;
+int opt_client_server_sleep_ms_if_queue_is_full = 1000;
 
 int opt_abort_if_rss_gt_gb = 0;
 int opt_next_server_connections = 0;
@@ -1405,12 +1411,12 @@ void *database_backup(void */*dummy*/) {
 		}
 	}
 	manager_parse_command_disable();
-	sqlStore->setEnableTerminatingIfSqlError(0, true);
+	sqlStore->setEnableTerminatingIfSqlError(0, 0, true);
 	while(is_terminating() < 2 && sqlStore->getAllSize()) {
 		syslog(LOG_NOTICE, "flush sqlStore");
 		sleep(1);
 	}
-	sqlStore->setEnableTerminatingIfEmpty(0, true);
+	sqlStore->setEnableTerminatingIfEmpty(0, 0, true);
 	delete sqlDb;
 	delete sqlStore;
 	sqlStore = NULL;
@@ -3715,6 +3721,10 @@ int main(int argc, char *argv[]) {
 	} else if(is_server() && !is_read_from_file_simple()) {
 		snifferServerStart();
 	}
+	
+	if(!ssl_client_random_tcp_host.empty() && ssl_client_random_tcp_port) {
+		clientRandomServerStart(ssl_client_random_tcp_host.c_str(), ssl_client_random_tcp_port);
+	}
 
 	if(opt_generator) {
 		opt_generator_channels = 2;
@@ -3855,6 +3865,7 @@ int main(int argc, char *argv[]) {
 		stop_cloud_receiver();
 	} else if(is_client()) {
 		snifferClientStop(snifferClientService);
+		snifferClientService = NULL;
 		if(opt_next_server_connections > 0) {
 			for(int i = 0; i < opt_next_server_connections; i++) {
 				snifferClientStop(snifferClientNextServices[i]);
@@ -3864,6 +3875,7 @@ int main(int argc, char *argv[]) {
 		}
 		if(snifferClientService_charts_cache) {
 			snifferClientStop(snifferClientService_charts_cache);
+			snifferClientService_charts_cache = NULL;
 		}
 	} else if(is_server() && !is_read_from_file_simple()) {
 		snifferServerStop();
@@ -4397,7 +4409,7 @@ int main_init_read() {
 			}
 		}
 	
-		if(ifname[0] || is_read_from_file_by_pb() || opt_scanpcapdir[0]) {
+		if((ifname[0] && strcmp(ifname, "--")) || is_read_from_file_by_pb() || opt_scanpcapdir[0]) {
 			pcapQueueI = new FILE_LINE(42035) PcapQueue_readFromInterface("interface");
 			pcapQueueI->setInterfaceName(ifname[0] ? 
 						      ifname :
@@ -4815,15 +4827,15 @@ void main_term_read() {
 		if(!isCloud() && is_server() && !is_read_from_file_simple()) {
 			snifferServerSetSqlStore(NULL);
 		}
-		sqlStore->setEnableTerminatingIfEmpty(0, true);
-		sqlStore->setEnableTerminatingIfSqlError(0, true);
+		sqlStore->setEnableTerminatingIfEmpty(0, 0, true);
+		sqlStore->setEnableTerminatingIfSqlError(0, 0, true);
 		regfailedcache->prune(0);
 		delete sqlStore;
 		sqlStore = NULL;
 	}
 	if(sqlStore_2) {
-		sqlStore_2->setEnableTerminatingIfEmpty(0, true);
-		sqlStore_2->setEnableTerminatingIfSqlError(0, true);
+		sqlStore_2->setEnableTerminatingIfEmpty(0, 0, true);
+		sqlStore_2->setEnableTerminatingIfSqlError(0, 0, true);
 		delete sqlStore_2;
 		sqlStore_2 = NULL;
 	}
@@ -4902,8 +4914,8 @@ void main_init_sqlstore() {
 		}
 		if(opt_load_query_from_files != 2) {
 			if(!opt_nocdr) {
-				sqlStore->connect(STORE_PROC_ID_CDR_1);
-				sqlStore->connect(STORE_PROC_ID_MESSAGE_1);
+				sqlStore->connect(STORE_PROC_ID_CDR, 0);
+				sqlStore->connect(STORE_PROC_ID_MESSAGE, 0);
 			}
 			if(opt_mysqlstore_concat_limit) {
 				sqlStore->setDefaultConcatLimit(opt_mysqlstore_concat_limit);
@@ -4913,75 +4925,87 @@ void main_init_sqlstore() {
 			}
 			for(int i = 0; i < opt_mysqlstore_max_threads_cdr; i++) {
 				if(opt_mysqlstore_concat_limit_cdr) {
-					sqlStore->setConcatLimit(STORE_PROC_ID_CDR_1 + i, opt_mysqlstore_concat_limit_cdr);
+					sqlStore->setConcatLimit(STORE_PROC_ID_CDR, i, opt_mysqlstore_concat_limit_cdr);
+					if(opt_mysql_mysql_redirect_cdr_queue) {
+						sqlStore->setConcatLimit(STORE_PROC_ID_CDR_REDIRECT, i, opt_mysqlstore_concat_limit_cdr);
+					}
 				}
 				if(i) {
-					sqlStore->setEnableAutoDisconnect(STORE_PROC_ID_CDR_1 + i);
+					sqlStore->setEnableAutoDisconnect(STORE_PROC_ID_CDR, i);
+					if(opt_mysql_mysql_redirect_cdr_queue) {
+						sqlStore->setEnableAutoDisconnect(STORE_PROC_ID_CDR_REDIRECT, i);
+					}
 				}
 				if(opt_mysql_enable_transactions_cdr) {
-					sqlStore->setEnableTransaction(STORE_PROC_ID_CDR_1 + i);
+					sqlStore->setEnableTransaction(STORE_PROC_ID_CDR, i);
+					if(opt_mysql_mysql_redirect_cdr_queue) {
+						sqlStore->setEnableTransaction(STORE_PROC_ID_CDR_REDIRECT, i);
+					}
 				}
 				if(opt_cdr_check_duplicity_callid_in_next_pass_insert) {
-					sqlStore->setEnableFixDeadlock(STORE_PROC_ID_CDR_1 + i);
+					sqlStore->setEnableFixDeadlock(STORE_PROC_ID_CDR, i);
+					if(opt_mysql_mysql_redirect_cdr_queue) {
+						sqlStore->setEnableFixDeadlock(STORE_PROC_ID_CDR_REDIRECT, i);
+					}
 				}
 			}
 			for(int i = 0; i < opt_mysqlstore_max_threads_message; i++) {
 				if(opt_mysqlstore_concat_limit_message) {
-					sqlStore->setConcatLimit(STORE_PROC_ID_MESSAGE_1 + i, opt_mysqlstore_concat_limit_message);
+					sqlStore->setConcatLimit(STORE_PROC_ID_MESSAGE, i, opt_mysqlstore_concat_limit_message);
 				}
 				if(i) {
-					sqlStore->setEnableAutoDisconnect(STORE_PROC_ID_MESSAGE_1 + i);
+					sqlStore->setEnableAutoDisconnect(STORE_PROC_ID_MESSAGE, i);
 				}
 				if(opt_mysql_enable_transactions_message) {
-					sqlStore->setEnableTransaction(STORE_PROC_ID_MESSAGE_1 + i);
+					sqlStore->setEnableTransaction(STORE_PROC_ID_MESSAGE, i);
 				}
 				if(opt_message_check_duplicity_callid_in_next_pass_insert) {
-					sqlStore->setEnableFixDeadlock(STORE_PROC_ID_MESSAGE_1 + i);
+					sqlStore->setEnableFixDeadlock(STORE_PROC_ID_MESSAGE, i);
 				}
 			}
 			for(int i = 0; i < opt_mysqlstore_max_threads_register; i++) {
 				if(opt_mysqlstore_concat_limit_register) {
-					sqlStore->setConcatLimit(STORE_PROC_ID_REGISTER_1 + i, opt_mysqlstore_concat_limit_register);
+					sqlStore->setConcatLimit(STORE_PROC_ID_REGISTER, i, opt_mysqlstore_concat_limit_register);
 				}
 				if(i) {
-					sqlStore->setEnableAutoDisconnect(STORE_PROC_ID_REGISTER_1 + i);
+					sqlStore->setEnableAutoDisconnect(STORE_PROC_ID_REGISTER, i);
 				}
 				if(opt_mysql_enable_transactions_register) {
-					sqlStore->setEnableTransaction(STORE_PROC_ID_REGISTER_1 + i);
+					sqlStore->setEnableTransaction(STORE_PROC_ID_REGISTER, i);
 				}
 			}
 			MySqlStore *sqlStoreHttp = (MySqlStore*)sqlStore_http();
 			for(int i = 0; i < opt_mysqlstore_max_threads_http; i++) {
 				if(opt_mysqlstore_concat_limit_http) {
-					sqlStoreHttp->setConcatLimit(STORE_PROC_ID_HTTP_1 + i, opt_mysqlstore_concat_limit_http);
+					sqlStoreHttp->setConcatLimit(STORE_PROC_ID_HTTP, i, opt_mysqlstore_concat_limit_http);
 				}
 				if(i) {
-					sqlStoreHttp->setEnableAutoDisconnect(STORE_PROC_ID_HTTP_1 + i);
+					sqlStoreHttp->setEnableAutoDisconnect(STORE_PROC_ID_HTTP, i);
 				}
 				if(opt_mysql_enable_transactions_http) {
-					sqlStoreHttp->setEnableTransaction(STORE_PROC_ID_HTTP_1 + i);
+					sqlStoreHttp->setEnableTransaction(STORE_PROC_ID_HTTP, i);
 				}
 			}
 			for(int i = 0; i < opt_mysqlstore_max_threads_webrtc; i++) {
 				if(opt_mysqlstore_concat_limit_webrtc) {
-					sqlStore->setConcatLimit(STORE_PROC_ID_WEBRTC_1 + i, opt_mysqlstore_concat_limit_webrtc);
+					sqlStore->setConcatLimit(STORE_PROC_ID_WEBRTC, i, opt_mysqlstore_concat_limit_webrtc);
 				}
 				if(i) {
-					sqlStore->setEnableAutoDisconnect(STORE_PROC_ID_WEBRTC_1 + i);
+					sqlStore->setEnableAutoDisconnect(STORE_PROC_ID_WEBRTC, i);
 				}
 				if(opt_mysql_enable_transactions_webrtc) {
-					sqlStore->setEnableTransaction(STORE_PROC_ID_WEBRTC_1 + i);
+					sqlStore->setEnableTransaction(STORE_PROC_ID_WEBRTC, i);
 				}
 			}
 			if(opt_mysqlstore_concat_limit_ipacc) {
 				for(int i = 0; i < opt_mysqlstore_max_threads_ipacc_base; i++) {
-					sqlStore->setConcatLimit(STORE_PROC_ID_IPACC_1 + i, opt_mysqlstore_concat_limit_ipacc);
+					sqlStore->setConcatLimit(STORE_PROC_ID_IPACC, i, opt_mysqlstore_concat_limit_ipacc);
 				}
 				for(int i = STORE_PROC_ID_IPACC_AGR_INTERVAL; i <= STORE_PROC_ID_IPACC_AGR_DAY; i++) {
-					sqlStore->setConcatLimit(i, opt_mysqlstore_concat_limit_ipacc);
+					sqlStore->setConcatLimit(i, 0, opt_mysqlstore_concat_limit_ipacc);
 				}
 				for(int i = 0; i < opt_mysqlstore_max_threads_ipacc_agreg2; i++) {
-					sqlStore->setConcatLimit(STORE_PROC_ID_IPACC_AGR2_HOUR_1 + i, opt_mysqlstore_concat_limit_ipacc);
+					sqlStore->setConcatLimit(STORE_PROC_ID_IPACC_AGR2_HOUR, i, opt_mysqlstore_concat_limit_ipacc);
 				}
 			}
 			if(!opt_nocdr && opt_autoload_from_sqlvmexport) {
@@ -5263,7 +5287,7 @@ void test_alloc_speed_tc() {
 void test_untar() {
 	Tar tar;
 	tar.tar_open("/var/spool/voipmonitor_local/2015-01-30/19/26/SIP/sip_2015-01-30-19-26.tar", O_RDONLY);
-	tar.tar_read("1309960312.pcap.*", "1309960312.pcap", 659493, "cdr");
+	tar.tar_read("1309960312.pcap", 659493, "cdr");
 }
 
 void test_http_dumper() {
@@ -5984,8 +6008,8 @@ void test() {
 			break;
 		}
 		set_terminating();
-		sqlStore->setEnableTerminatingIfEmpty(0, true);
-		sqlStore->setEnableTerminatingIfSqlError(0, true);
+		sqlStore->setEnableTerminatingIfEmpty(0, 0, true);
+		sqlStore->setEnableTerminatingIfSqlError(0, 0, true);
 		delete sqlStore;
 		sqlStore = NULL;
 		}
@@ -6499,21 +6523,21 @@ void cConfig::addConfigItems() {
 				addConfigItem(new FILE_LINE(42100) cConfigItem_integer("mysqlstore_concat_limit_webrtc", &opt_mysqlstore_concat_limit_webrtc));
 				addConfigItem(new FILE_LINE(42101) cConfigItem_integer("mysqlstore_concat_limit_ipacc", &opt_mysqlstore_concat_limit_ipacc));
 				addConfigItem((new FILE_LINE(42102) cConfigItem_integer("mysqlstore_max_threads_cdr", &opt_mysqlstore_max_threads_cdr))
-					->setMaximum(30)->setMinimum(1));
+					->setMaximum(99)->setMinimum(1));
 				addConfigItem((new FILE_LINE(42103) cConfigItem_integer("mysqlstore_max_threads_message", &opt_mysqlstore_max_threads_message))
-					->setMaximum(30)->setMinimum(1));
+					->setMaximum(99)->setMinimum(1));
 				addConfigItem((new FILE_LINE(42104) cConfigItem_integer("mysqlstore_max_threads_register", &opt_mysqlstore_max_threads_register))
-					->setMaximum(9)->setMinimum(1));
+					->setMaximum(99)->setMinimum(1));
 				addConfigItem((new FILE_LINE(42105) cConfigItem_integer("mysqlstore_max_threads_http", &opt_mysqlstore_max_threads_http))
-					->setMaximum(9)->setMinimum(1));
+					->setMaximum(99)->setMinimum(1));
 				addConfigItem((new FILE_LINE(42106) cConfigItem_integer("mysqlstore_max_threads_webrtc", &opt_mysqlstore_max_threads_webrtc))
-					->setMaximum(9)->setMinimum(1));
+					->setMaximum(99)->setMinimum(1));
 				addConfigItem((new FILE_LINE(42107) cConfigItem_integer("mysqlstore_max_threads_ipacc_base", &opt_mysqlstore_max_threads_ipacc_base))
-					->setMaximum(9)->setMinimum(1));
+					->setMaximum(99)->setMinimum(1));
 				addConfigItem((new FILE_LINE(42108) cConfigItem_integer("mysqlstore_max_threads_ipacc_agreg2", &opt_mysqlstore_max_threads_ipacc_agreg2))
-					->setMaximum(9)->setMinimum(1));
+					->setMaximum(99)->setMinimum(1));
 				addConfigItem((new FILE_LINE(42108) cConfigItem_integer("mysqlstore_max_threads_charts_cache", &opt_mysqlstore_max_threads_charts_cache))
-					->setMaximum(9)->setMinimum(1));
+					->setMaximum(99)->setMinimum(1));
 				addConfigItem(new FILE_LINE(42109) cConfigItem_integer("mysqlstore_limit_queue_register", &opt_mysqlstore_limit_queue_register));
 				addConfigItem(new FILE_LINE(42110) cConfigItem_yesno("mysqltransactions", &opt_mysql_enable_transactions));
 				addConfigItem(new FILE_LINE(42111) cConfigItem_yesno("mysqltransactions_cdr", &opt_mysql_enable_transactions_cdr));
@@ -6528,6 +6552,7 @@ void cConfig::addConfigItems() {
 					expert();
 					addConfigItem(new FILE_LINE(0) cConfigItem_yesno("mysql_enable_set_id", &opt_mysql_enable_set_id));
 					addConfigItem(new FILE_LINE(0) cConfigItem_yesno("csv_store_format", &opt_csv_store_format));
+					addConfigItem(new FILE_LINE(0) cConfigItem_yesno("mysql_redirect_cdr_queue", &opt_mysql_mysql_redirect_cdr_queue));
 		subgroup("cleaning");
 			addConfigItem(new FILE_LINE(42116) cConfigItem_integer("cleandatabase"));
 			addConfigItem(new FILE_LINE(42117) cConfigItem_integer("cleandatabase_cdr", &opt_cleandatabase_cdr));
@@ -6699,6 +6724,7 @@ void cConfig::addConfigItems() {
 			addConfigItem(new FILE_LINE(42187) cConfigItem_string("spooldir_2_audio", opt_spooldir_2_audio, sizeof(opt_spooldir_2_audio)));
 			addConfigItem(new FILE_LINE(42188) cConfigItem_yesno("tar", &opt_pcap_dump_tar));
 				advanced();
+				addConfigItem(new FILE_LINE(0) cConfigItem_yesno("tar_use_hash_instead_of_long_callid", &opt_pcap_dump_tar_use_hash_instead_of_long_callid));
 				addConfigItem(new FILE_LINE(0) cConfigItem_string("spooldir_file_permission", opt_spooldir_file_permission, sizeof(opt_spooldir_file_permission)));
 				addConfigItem(new FILE_LINE(0) cConfigItem_string("spooldir_dir_permission", opt_spooldir_dir_permission, sizeof(opt_spooldir_dir_permission)));
 				addConfigItem(new FILE_LINE(0) cConfigItem_string("spooldir_owner", opt_spooldir_owner, sizeof(opt_spooldir_owner)));
@@ -6835,7 +6861,10 @@ void cConfig::addConfigItems() {
 			addConfigItem(new FILE_LINE(0) cConfigItem_yesno("ssl_sessionkey_udp", &ssl_client_random_enable));
 			addConfigItem(new FILE_LINE(0) cConfigItem_ports("ssl_sessionkey_udp_port", ssl_client_random_portmatrix));
 			addConfigItem(new FILE_LINE(0) cConfigItem_hosts("ssl_sessionkey_udp_ip", &ssl_client_random_ip, &ssl_client_random_net));
-			addConfigItem(new FILE_LINE(0) cConfigItem_integer("ssl_sessionkey_udp_maxwait_ms", &ssl_client_random_maxwait_ms));
+			addConfigItem(new FILE_LINE(0) cConfigItem_string("ssl_sessionkey_bind", &ssl_client_random_tcp_host));
+			addConfigItem(new FILE_LINE(0) cConfigItem_integer("ssl_sessionkey_bind_port", &ssl_client_random_tcp_port));
+			addConfigItem((new FILE_LINE(0) cConfigItem_integer("ssl_sessionkey_maxwait_ms", &ssl_client_random_maxwait_ms))
+				->addAlias("ssl_sessionkey_udp_maxwait_ms"));
 			addConfigItem(new FILE_LINE(0) cConfigItem_yesno("ssl_ignore_tcp_handshake", &opt_ssl_ignore_tcp_handshake));
 			addConfigItem(new FILE_LINE(0) cConfigItem_yesno("ssl_log_errors", &opt_ssl_log_errors));
 			addConfigItem(new FILE_LINE(0) cConfigItem_yesno("ssl_ignore_error_invalid_mac", &opt_ssl_ignore_error_invalid_mac));
@@ -7028,6 +7057,7 @@ void cConfig::addConfigItems() {
 			addConfigItem(new FILE_LINE(42324) cConfigItem_yesno("rtpfromsdp_onlysip", &opt_rtpfromsdp_onlysip));
 			addConfigItem(new FILE_LINE(42324) cConfigItem_yesno("rtpfromsdp_onlysip_skinny", &opt_rtpfromsdp_onlysip_skinny));
 				advanced();
+				addConfigItem(new FILE_LINE(0) cConfigItem_integer("rtp_streams_max_in_call", &opt_rtp_streams_max_in_call));
 				addConfigItem((new FILE_LINE(0) cConfigItem_yesno("rtp_check_both_sides_by_sdp", &opt_rtp_check_both_sides_by_sdp))
 					->addValues("keep_rtp_packets:2"));
 				addConfigItem(new FILE_LINE(42325) cConfigItem_yesno("rtpmap_by_callerd", &opt_rtpmap_by_callerd));
@@ -7267,6 +7297,7 @@ void cConfig::addConfigItems() {
 					->addValues("gzip:1|zip:1|lzo:2")
 					->setDefaultValueStr("yes"));
 				addConfigItem(new FILE_LINE(0) cConfigItem_integer("client_server_connect_maximum_time_diff_s", &opt_client_server_connect_maximum_time_diff_s));
+				addConfigItem(new FILE_LINE(0) cConfigItem_integer("client_server_sleep_ms_if_queue_is_full", &opt_client_server_sleep_ms_if_queue_is_full));
 		subgroup("other");
 			addConfigItem(new FILE_LINE(42459) cConfigItem_string("keycheck", opt_keycheck, sizeof(opt_keycheck)));
 			addConfigItem(new FILE_LINE(0) cConfigItem_yesno("charts_cache", &opt_charts_cache));
@@ -7655,6 +7686,7 @@ void parse_command_line_arguments(int argc, char *argv[]) {
 	    {"dedup-pcap", 1, 0, 341},
 	    {"heap-profiler", 1, 0, 342},
 	    {"revaluation", 1, 0, 344},
+	    {"eval-formula", 1, 0, 345},
 /*
 	    {"maxpoolsize", 1, 0, NULL},
 	    {"maxpooldays", 1, 0, NULL},
@@ -7705,6 +7737,7 @@ void parse_verb_param(string verbParam) {
 	else if(verbParam == "http")				sverb.http = 1;
 	else if(verbParam == "webrtc")				sverb.webrtc = 1;
 	else if(verbParam == "ssl")				sverb.ssl = 1;
+	else if(verbParam == "tls")				sverb.tls = 1;
 	else if(verbParam == "ssl_sessionkey")			sverb.ssl_sessionkey = 1;
 	else if(verbParam == "sip")				sverb.sip = 1;
 	else if(verbParam.substr(0, 25) == "tcpreassembly_debug_file=")
@@ -8112,7 +8145,11 @@ void get_command_line_arguments() {
 				opt_pb_read_from_file_acttime_diff_days = atoi(optarg);
 				break;
 			case 343:
-				opt_pb_read_from_file_time_adjustment = atoll(optarg);
+				{
+				cEvalFormula f(cEvalFormula::_est_na);
+				cEvalFormula::sValue v = f.e(optarg);
+				opt_pb_read_from_file_time_adjustment = v.getInteger();
+				}
 				break;
 			case 304:
 			case 305:
@@ -8251,6 +8288,10 @@ void get_command_line_arguments() {
 					config.setFromJson(optarg);
 				}
 				useCmdLineConfig = true;
+				if(!snifferServerOptions.host.empty() ||
+				   !snifferClientOptions.host.empty()) {
+					useNewCONFIG = true;
+				}
 				break;
 			case 339:
 				opt_sip_options = true;
@@ -8293,6 +8334,18 @@ void get_command_line_arguments() {
 				if(!opt_revaluation_params) {
 					opt_revaluation_params =  new FILE_LINE(0) char[strlen(optarg) + 1];
 					strcpy(opt_revaluation_params, optarg);
+				}
+				break;
+			case 345:
+				{
+				cEvalFormula f(cEvalFormula::_est_na, true);
+				cEvalFormula::sSplitOperands *filter_s = new FILE_LINE(0) cEvalFormula::sSplitOperands(0);
+				cEvalFormula::sValue v = f.e(optarg, 0, 0, 0, filter_s);
+				while(f.e_opt(filter_s)) {
+					cout << "-- opt" << endl;
+				}
+				cout << "== " << f.e(filter_s).getFloat() << endl;
+				exit(0);
 				}
 				break;
 		}
@@ -9170,7 +9223,14 @@ int eval_config(string inistr) {
 			std::sort(ssl_client_random_ip.begin(), ssl_client_random_ip.end());
 		}
 	}
-	if((value = ini.GetValue("general", "ssl_sessionkey_udp_maxwait_ms", NULL))) {
+	if((value = ini.GetValue("general", "ssl_sessionkey_bind", NULL))) {
+		ssl_client_random_tcp_host = value;
+	}
+	if((value = ini.GetValue("general", "ssl_sessionkey_bind_port", NULL))) {
+		ssl_client_random_tcp_port = atoi(value);
+	}
+	if((value = ini.GetValue("general", "ssl_sessionkey_maxwait_ms", NULL)) ||
+	   (value = ini.GetValue("general", "ssl_sessionkey_udp_maxwait_ms", NULL))) {
 		ssl_client_random_maxwait_ms = atoi(value);
 	}
 	
@@ -10427,6 +10487,9 @@ int eval_config(string inistr) {
 	if((value = ini.GetValue("general", "rtpfromsdp_onlysip_skinny", NULL))) {
 		opt_rtpfromsdp_onlysip_skinny = yesno(value);
 	}
+	if((value = ini.GetValue("general", "rtp_streams_max_in_call", NULL))) {
+		opt_rtp_streams_max_in_call = atoi(value);
+	}
 	if((value = ini.GetValue("general", "rtp_check_both_sides_by_sdp", NULL))) {
 		opt_rtp_check_both_sides_by_sdp = strcmp(value, "keep_rtp_packets") ? yesno(value) : 2;
 	}
@@ -10807,28 +10870,28 @@ int eval_config(string inistr) {
 	}
 	
 	if((value = ini.GetValue("general", "mysqlstore_max_threads_cdr", NULL))) {
-		opt_mysqlstore_max_threads_cdr = max(min(atoi(value), 30), 1);
+		opt_mysqlstore_max_threads_cdr = max(min(atoi(value), 99), 1);
 	}
 	if((value = ini.GetValue("general", "mysqlstore_max_threads_message", NULL))) {
-		opt_mysqlstore_max_threads_message = max(min(atoi(value), 30), 1);
+		opt_mysqlstore_max_threads_message = max(min(atoi(value), 99), 1);
 	}
 	if((value = ini.GetValue("general", "mysqlstore_max_threads_register", NULL))) {
-		opt_mysqlstore_max_threads_register = max(min(atoi(value), 9), 1);
+		opt_mysqlstore_max_threads_register = max(min(atoi(value), 99), 1);
 	}
 	if((value = ini.GetValue("general", "mysqlstore_max_threads_http", NULL))) {
-		opt_mysqlstore_max_threads_http = max(min(atoi(value), 9), 1);
+		opt_mysqlstore_max_threads_http = max(min(atoi(value), 99), 1);
 	}
 	if((value = ini.GetValue("general", "mysqlstore_max_threads_webrtc", NULL))) {
-		opt_mysqlstore_max_threads_webrtc = max(min(atoi(value), 9), 1);
+		opt_mysqlstore_max_threads_webrtc = max(min(atoi(value), 99), 1);
 	}
 	if((value = ini.GetValue("general", "mysqlstore_max_threads_ipacc_base", NULL))) {
-		opt_mysqlstore_max_threads_ipacc_base = max(min(atoi(value), 9), 1);
+		opt_mysqlstore_max_threads_ipacc_base = max(min(atoi(value), 99), 1);
 	}
 	if((value = ini.GetValue("general", "mysqlstore_max_threads_ipacc_agreg2", NULL))) {
-		opt_mysqlstore_max_threads_ipacc_agreg2 = max(min(atoi(value), 9), 1);
+		opt_mysqlstore_max_threads_ipacc_agreg2 = max(min(atoi(value), 99), 1);
 	}
 	if((value = ini.GetValue("general", "mysqlstore_max_threads_charts_cache", NULL))) {
-		opt_mysqlstore_max_threads_charts_cache = max(min(atoi(value), 9), 1);
+		opt_mysqlstore_max_threads_charts_cache = max(min(atoi(value), 99), 1);
 	}
 	
 	if((value = ini.GetValue("general", "mysqlstore_limit_queue_register", NULL))) {
@@ -10903,6 +10966,9 @@ int eval_config(string inistr) {
 	}
 	if((value = ini.GetValue("general", "tar", NULL))) {
 		opt_pcap_dump_tar = yesno(value);
+	}
+	if((value = ini.GetValue("general", "tar_use_hash_instead_of_long_callid", NULL))) {
+		opt_pcap_dump_tar_use_hash_instead_of_long_callid = yesno(value);
 	}
 	if((value = ini.GetValue("general", "tar_maxthreads", NULL))) {
 		opt_pcap_dump_tar_threads = atoi(value);

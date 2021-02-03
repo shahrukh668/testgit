@@ -19,13 +19,17 @@
 #include "tools_local.h"
 #include "ip.h"
 
-#ifndef CLOUD_ROUTER_SERVER
+#ifdef CLOUD_ROUTER_CLIENT
 #include "common.h"
 #include "config.h"
 #endif
 
 #ifdef FREEBSD
 #include <sys/thr.h>
+#endif
+
+#ifndef FILE_LINE
+#define FILE_LINE(alloc_number)
 #endif
 
 
@@ -223,9 +227,10 @@ inline u_int64_t getTimeNS() {
 }
 
 
-#ifdef CLOUD_ROUTER_SERVER
+#if defined(CLOUD_ROUTER_SERVER) or defined(CLOUD_ROUTER_SSLKEYLOGGER)
 #define USLEEP(us) usleep(us);
-#else
+#endif
+#ifdef CLOUD_ROUTER_CLIENT
 #define USLEEP(us) usleep(us, __FILE__, __LINE__);
 #define USLEEP_C(us, c) usleep(us, c, __FILE__, __LINE__);
 inline unsigned int usleep(unsigned int useconds, unsigned int counter, const char *file, int line) {
@@ -549,7 +554,7 @@ public:
 		if(!buffer) {
 			buffer = new FILE_LINE(39002) u_char[dataLength + capacityReserve + 1];
 			bufferCapacity = dataLength + capacityReserve + 1;
-		} else if(bufferLength + dataLength + 1 > capacityReserve) {
+		} else if(bufferLength + dataLength + 1 > bufferCapacity) {
 			u_char *bufferNew = new FILE_LINE(39003) u_char[bufferLength + dataLength + capacityReserve + 1];
 			memcpy(bufferNew, buffer, bufferLength);
 			delete [] buffer;
@@ -559,10 +564,46 @@ public:
 		memcpy(buffer + bufferLength, data, dataLength);
 		bufferLength += dataLength;
 	}
+	void set(const char *data) {
+		clear();
+		add(data);
+	}
+	void set(void *data, u_int32_t dataLength) {
+		clear();
+		add(data, dataLength);
+	}
+	void set_data_capacity(u_int32_t bufferCapacity) {
+		if(bufferCapacity > this->bufferCapacity) {
+			if(!buffer) {
+				buffer = new FILE_LINE(0) u_char[bufferCapacity];
+			} else {
+				u_char *bufferNew = new FILE_LINE(0) u_char[bufferCapacity];
+				memcpy(bufferNew, buffer, bufferLength);
+				delete [] buffer;
+				buffer = bufferNew;
+			}
+			this->bufferCapacity = bufferCapacity;
+		}
+	}
+	u_int32_t data_capacity() {
+		return(bufferCapacity);
+	}
 	u_char *data() {
 		return(buffer);
 	}
+	u_char *data() const {
+		return(buffer);
+	}
 	u_int32_t size() {
+		return(bufferLength);
+	}
+	u_int32_t size() const {
+		return(bufferLength);
+	}
+	u_int32_t data_len() {
+		return(bufferLength);
+	}
+	u_int32_t data_len() const {
 		return(bufferLength);
 	}
 	void clear() {
@@ -799,6 +840,7 @@ public:
 private:
 	vmIP resolve_std(const char *host, vector<vmIP> *ips);
 	vmIP resolve_by_system_host(const char *host, vector<vmIP> *ips);
+	void sort_ips_by_type(vector<vmIP> *ips);
 private:
 	void lock() {
 		while(__sync_lock_test_and_set(&_sync_lock, 1)) {

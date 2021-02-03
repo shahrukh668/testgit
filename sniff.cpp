@@ -467,7 +467,7 @@ inline void save_packet_sql(Call *call, packet_s_process *packetS, int uid,
 		_sqlEscapeString(mpacket, savePacketLenWithHeaders, query_buff + strlen(query_buff), NULL);
 		strcat(query_buff, "#'");
 	}
-	sqlStore->query_lock(MYSQL_ADD_QUERY_END(string(query_buff)), STORE_PROC_ID_SAVE_PACKET_SQL);
+	sqlStore->query_lock(MYSQL_ADD_QUERY_END(string(query_buff)), STORE_PROC_ID_SAVE_PACKET_SQL, 0);
 }
 
 
@@ -894,7 +894,7 @@ ParsePacket _parse_packet_global_process_packet;
 
 int check_sip20(char *data, unsigned long len, ParsePacket::ppContentsX *parseContents, bool isTcp) {
  
-	if(check_websocket(data, len, !isTcp)) {
+	if(check_websocket(data, len, isTcp ? cWebSocketHeader::_chdst_na : cWebSocketHeader::_chdst_ge_limit)) {
 		cWebSocketHeader ws((u_char*)data, len);
 		if(len > ws.getHeaderLength()) {
 			bool allocData;
@@ -2871,6 +2871,27 @@ inline Call *new_invite_register(packet_s_process *packetS, int sip_method, char
 				call->contact_num, call->contact_domain, call->caller, call->callername, call->caller_domain, 
 				call->digest_username, call->digest_realm, call->register_expires);
 */
+			if(packetS->istcp) {
+				u_int32_t seq = packetS->tcp_seq();
+				if(seq) {
+					extern Registers registers;
+					if(opt_sip_register == 1 && registers.existsDuplTcpSeqInRegOK(call, seq)) {
+						if(sverb.dump_sip) {
+							cout << " - skip duplicate tcp seq " << seq
+							     << " in register " << call->call_id << endl;
+						}
+						((Calltable*)calltable)->lock_registers_listMAP();
+						map<string, Call*>::iterator registerMAPIT = ((Calltable*)calltable)->registers_listMAP.find(call->call_id);
+						if(registerMAPIT != ((Calltable*)calltable)->registers_listMAP.end()) {
+							((Calltable*)calltable)->registers_listMAP.erase(registerMAPIT);
+						}
+						((Calltable*)calltable)->unlock_registers_listMAP();
+						delete call;
+						return(NULL);
+					}
+					call->addRegTcpSeq(seq);
+				}
+			}
 		}
 		if(opt_enable_fraud && isFraudReady()) {
 			if(needCustomHeadersForFraud()) {
@@ -3224,6 +3245,10 @@ void process_packet_sip_call(packet_s_process *packetS) {
 			<< " -> "
 			<< packetS->daddr_().getString() << ':' << packetS->dest_() 
 			<< endl;
+			Call *call = packetS->call ? packetS->call : packetS->call_created;
+			if(call) {
+				cout << call->caller << " -> " << call->called << endl;
+			}
 		}
 		cout << dump_data << endl;
 	}
@@ -3341,6 +3366,8 @@ void process_packet_sip_call(packet_s_process *packetS) {
 					get_sip_peername(packetS, "\nFrom:", "\nf:", &invite_sd.caller, ppntt_from, ppndt_caller);
 					get_sip_peername(packetS, "\nTo:", "\nt:", &invite_sd.called, ppntt_to, ppndt_called);
 					get_sip_peername(packetS, "INVITE ", NULL, &invite_sd.called_invite, ppntt_invite, ppndt_called);
+					detect_branch(packetS, branch, sizeof(branch), &branch_detected);
+					invite_sd.branch = branch;
 				}
 				call->invite_sdaddr.push_back(invite_sd);
 				inviteSdaddrIndex = call->invite_sdaddr.size() - 1;
@@ -3364,6 +3391,8 @@ void process_packet_sip_call(packet_s_process *packetS) {
 					get_sip_peername(packetS, "\nFrom:", "\nf:", &rinvite_sd.caller, ppntt_from, ppndt_caller);
 					get_sip_peername(packetS, "\nTo:", "\nt:", &rinvite_sd.called, ppntt_to, ppndt_called);
 					get_sip_peername(packetS, "INVITE ", NULL, &rinvite_sd.called_invite, ppntt_invite, ppndt_called);
+					detect_branch(packetS, branch, sizeof(branch), &branch_detected);
+					rinvite_sd.branch = branch;
 					call->rinvite_sdaddr.push_back(rinvite_sd);
 					list<Call::sInviteSD_Addr>::iterator riter = call->rinvite_sdaddr.end();
 					--riter;
@@ -3781,12 +3810,24 @@ void process_packet_sip_call(packet_s_process *packetS) {
 					}
 					if(opt_update_dstnum_onanswer &&
 					   !call->updateDstnumOnAnswer && !call->updateDstnumFromMessage &&
-					   call->called_invite_branch_map.size()) {
+					   call->called_invite_branch_map.size() > 1) {
 						detect_branch(packetS, branch, sizeof(branch), &branch_detected);
 						if(branch[0] != '\0') {
-							map<string, string>::iterator iter = call->called_invite_branch_map.find(branch);
+							bool use_called_invite = false;
+							if(opt_destination_number_mode == 2) {
+								use_called_invite = 1;
+							} else {
+								map<string, bool> variants_called_invite;
+								map<string, bool> variants_to;
+								for(map<string, dstring>::iterator iter = call->called_invite_branch_map.begin(); iter != call->called_invite_branch_map.end(); iter++) {
+									variants_called_invite[iter->second[0]] = true;
+									variants_to[iter->second[1]] = true;
+								}
+								use_called_invite = variants_called_invite.size() > variants_to.size();
+							}
+							map<string, dstring>::iterator iter = call->called_invite_branch_map.find(branch);
 							if(iter != call->called_invite_branch_map.end()) {
-								strcpy_null_term(call->called, iter->second.c_str());
+								strcpy_null_term(call->called, iter->second[use_called_invite ? 0 : 1].c_str());
 								call->updateDstnumOnAnswer = true;
 							}
 						}
@@ -3907,8 +3948,9 @@ void process_packet_sip_call(packet_s_process *packetS) {
 		detect_branch(packetS, branch, sizeof(branch), &branch_detected);
 		if(branch[0] != '\0') {
 			detect_called_invite(packetS, called_invite, sizeof(called_invite), &called_invite_detected);
-			if(called_invite[0] != '\0') {
-				call->called_invite_branch_map[branch] = called_invite;
+			detect_to(packetS, to, sizeof(to), &to_detected);
+			if(called_invite[0] != '\0' || to[0] != '\0') {
+				call->called_invite_branch_map[branch] = dstring(called_invite, to);
 			}
 		}
 		if(!packetS->_createCall && !existInviteSdaddr && !reverseInviteSdaddr) {
@@ -3923,8 +3965,11 @@ void process_packet_sip_call(packet_s_process *packetS) {
 				call->proxy_add(packetS->saddr_());
 			}
 			if(packetS->daddr_() != call->getSipcallerip() && packetS->daddr_() != call->getSipcalledip() && !call->in_proxy(packetS->daddr_())) {
-				call->proxy_add(call->getSipcalledip());
-				call->setSipcalledip(packetS->daddr_(), packetS->dest_(), packetS->get_callid());
+				if(!(opt_sdp_check_direction_ext &&
+				     packetS->saddr_() == call->getSipcallerip() && call->all_invite_is_multibranch(packetS->saddr_()))) {
+					call->proxy_add(call->getSipcalledip());
+					call->setSipcalledip(packetS->daddr_(), packetS->dest_(), packetS->get_callid());
+				}
 			}
 		}
 		/* old version
@@ -4414,10 +4459,12 @@ void process_packet_sip_register(packet_s_process *packetS) {
 		}
 	}
 		
+	bool call_created = false;
 	call = calltable->find_by_register_id(packetS->get_callid(), 0);
 	if(!call) {
 		if(packetS->sip_method == REGISTER) {
 			call = new_invite_register(packetS, packetS->sip_method, packetS->get_callid());
+			call_created = true;
 		}
 		if(!call) {
 			goto endsip;
@@ -4484,7 +4531,12 @@ void process_packet_sip_register(packet_s_process *packetS) {
 		if(packetS->cseq.is_set()) {
 			call->registercseq = packetS->cseq;
 		}
-
+		if(!call_created && packetS->istcp) {
+			u_int32_t seq = packetS->tcp_seq();
+			if(seq) {
+				call->addRegTcpSeq(packetS->tcp_seq());
+			}
+		}
 
 	} else if(packetS->sip_method == RES2XX) {
 		call->seenRES2XX = true;
@@ -4773,7 +4825,7 @@ inline int process_packet__rtp_call_info(packet_s_process_rtp_call_info *call_in
 		call = call_info[call_info_index].call;
 		iscaller = call_info[call_info_index].iscaller;
 		sdp_flags = call_info[call_info_index].sdp_flags;
-		is_rtcp = call_info[call_info_index].is_rtcp || (sdp_flags.rtcp_mux && packetS->datalen_() > 1 && (u_char)packetS->data_()[1] == 0xC8);
+		is_rtcp = call_info[call_info_index].is_rtcp || (packetS->datalen_() > 1 && RTP::isRTCP_enforce(packetS->data_()));
 		stream_in_multiple_calls = call_info[call_info_index].multiple_calls;
 		
 		if(!find_by_dest && iscaller_is_set(iscaller)) {
@@ -8041,7 +8093,7 @@ void PreProcessPacket::process_SIP(packet_s_process *packetS) {
 				}
 			} else {
 				bool possibleWebSocketSip = false;
-				if(!isSip && check_websocket(packetS->data_(), packetS->datalen_(), false)) {
+				if(!isSip && check_websocket(packetS->data_(), packetS->datalen_(), cWebSocketHeader::_chdst_na)) {
 					cWebSocketHeader ws(packetS->data_(), packetS->datalen_());
 					if(packetS->datalen_() - ws.getHeaderLength() < 11) {
 						possibleWebSocketSip = true;

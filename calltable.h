@@ -45,7 +45,10 @@
 #include "record_array.h"
 
 #define MAX_IP_PER_CALL 40	//!< total maxumum of SDP sessions for one call-id
-#define MAX_SSRC_PER_CALL 40	//!< total maxumum of SDP sessions for one call-id
+#define MAX_SSRC_PER_CALL_FIX 40	//!< total maxumum of SDP sessions for one call-id
+#if CALL_RTP_DYNAMIC_ARRAY
+typedef vector<RTP*> CALL_RTP_DYNAMIC_ARRAY_TYPE;
+#endif
 #define MAX_FNAME 256		//!< max len of stored call-id
 #define MAX_RTPMAP 40          //!< max rtpmap records
 #define MAXNODE 150000
@@ -563,6 +566,7 @@ public:
 		string caller;
 		string called;
 		string called_invite;
+		string branch;
 	};
 	struct sSipResponse {
 		sSipResponse(const char *SIPresponse = NULL, int SIPresponseNum = 0) {
@@ -673,10 +677,14 @@ public:
 	};
 public:
 	bool is_ssl;			//!< call was decrypted
-	RTP *rtp[MAX_SSRC_PER_CALL];		//!< array of RTP streams
+	RTP *rtp_fix[MAX_SSRC_PER_CALL_FIX];	//!< array of RTP streams
+	int ssrc_n;				//!< last index of rtp array
+	#if CALL_RTP_DYNAMIC_ARRAY
+	vector<RTP*> *rtp_dynamic;
+	#endif
 	RTP *rtpab[2];
 	map<int, class RTPsecure*> rtp_secure_map;
-	volatile int rtplock;
+	volatile int rtplock_sync;
 	unsigned long call_id_len;	//!< length of call-id 	
 	string call_id;	//!< call-id from SIP session
 	map<string, bool> *call_id_alternative;
@@ -685,7 +693,7 @@ public:
 	char caller[256];		//!< From: xxx 
 	char caller_domain[256];	//!< From: xxx 
 	char called[256];		//!< To: xxx
-	map<string, string> called_invite_branch_map;
+	map<string, dstring> called_invite_branch_map;
 	char called_domain[256];	//!< To: xxx
 	char contact_num[64];		//!< 
 	char contact_domain[128];	//!< 
@@ -745,6 +753,7 @@ public:
 	int recordingpausedby182;
 	bool save_energylevels;
 	int msgcount;
+	
 	int regcount;
 	int regcount_after_4xx;
 	int reg401count;
@@ -757,7 +766,9 @@ public:
 	bool regresponse;
 	timeval regrrdstart;		// time of first REGISTER
 	int regrrddiff;			// RRD diff time REGISTER<->OK in [ms]- RFC6076
-	uint64_t regsrcmac;		// mac if ether layer present in REGISTER
+	//uint64_t regsrcmac;		// mac if ether layer present in REGISTER
+	list<u_int32_t> *reg_tcp_seq;
+	
 	int last_sip_method;
 	volatile unsigned int rtppacketsinqueue;
 	volatile int end_call_rtp;
@@ -876,7 +887,6 @@ public:
 
 	void *listening_worker_args;
 	
-	int ssrc_n;				//!< last index of rtp array
 	int ipport_n;				//!< last index of addr and port array 
 
 	RTP *lastraw[2];
@@ -965,6 +975,7 @@ public:
 	int get_index_by_iscaller(int iscaller);
 	
 	bool is_multiple_to_branch();
+	bool all_invite_is_multibranch(vmIP saddr);
 	bool to_is_canceled(char *to);
 	string get_to_not_canceled();
 
@@ -1253,8 +1264,8 @@ public:
 		       pcapRtp.isClose());
 	}
 	bool isGraphsClose() {
-		for(int i = 0; i < MAX_SSRC_PER_CALL; i++) {
-			if(rtp[i] && !rtp[i]->graph.isClose()) {
+		for(int i = 0; i < rtp_size(); i++) { RTP *rtp_i = rtp_stream_by_index(i);
+			if(rtp_i && !rtp_i->graph.isClose()) {
 				return(false);
 			}
 		}
@@ -1623,6 +1634,52 @@ public:
 	bool isEmptyCdrRow() {
 		return(cdr.isEmpty());
 	}
+	
+	void addRegTcpSeq(u_int32_t seq) {
+		if(seq) {
+			if(!reg_tcp_seq) {
+				reg_tcp_seq = new list<u_int32_t>;
+			}
+			reg_tcp_seq->push_back(seq);
+		}
+	}
+	
+	inline void add_rtp_stream(RTP *rtp) {
+		#if CALL_RTP_DYNAMIC_ARRAY
+		if(ssrc_n < MAX_SSRC_PER_CALL_FIX) {
+			rtp_fix[ssrc_n] = rtp;
+		} else {
+			if(!rtp_dynamic) {
+				rtp_dynamic = new FILE_LINE(0) CALL_RTP_DYNAMIC_ARRAY_TYPE;
+			}
+			rtp_dynamic->push_back(rtp);
+		}
+		#else
+		rtp_fix[ssrc_n] = rtp;
+		#endif
+		++ssrc_n;
+	}
+	inline RTP *rtp_stream_by_index(unsigned index) {
+		#if CALL_RTP_DYNAMIC_ARRAY
+		if(index < MAX_SSRC_PER_CALL_FIX) {
+			return(rtp_fix[index]);
+		} else {
+			return((*rtp_dynamic)[index - MAX_SSRC_PER_CALL_FIX]);
+		}
+		#else
+		return(rtp_fix[index]);
+		#endif
+	}
+	inline int rtp_size() {
+		return(ssrc_n);
+	}
+	
+	inline void rtp_lock() {
+		__SYNC_LOCK_USLEEP(rtplock_sync, 100);
+	}
+	inline void rtp_unlock() {
+		__SYNC_UNLOCK(rtplock_sync);
+	}
 
 private:
 	ip_port_call_info ip_port[MAX_IP_PER_CALL];
@@ -1658,7 +1715,11 @@ private:
 	SqlDb_row cdr_next;
 	SqlDb_row cdr_next_ch[CDR_NEXT_MAX];
 	SqlDb_row cdr_country_code;
-	unsigned rtp_rows_indexes[MAX_SSRC_PER_CALL];
+	#if CALL_RTP_DYNAMIC_ARRAY
+	map<unsigned, unsigned> rtp_rows_indexes;
+	#else
+	unsigned rtp_rows_indexes[MAX_SSRC_PER_CALL_FIX];
+	#endif
 	unsigned rtp_rows_count;
 	vector<d_item2<vmIPport, bool> > sdp_rows_list;
 friend class RTPsecure;

@@ -3381,7 +3381,7 @@ int Mgmt_readaudio(Mgmt_params *params) {
 
 int Mgmt_reload(Mgmt_params *params) {
 	if (params->task == params->mgmt_task_DoInit) {
-		params->registerCommand("reload", "voipmonitor reload");
+		params->registerCommand("reload", "voipmonitor's reload. The reloaded items: the capture rules for now");
 		return(0);
 	}
 	reload_capture_rules();
@@ -3591,7 +3591,7 @@ int Mgmt_getfile_in_tar(Mgmt_params *params) {
 		string filename_conv = filename;
 		prepare_string_to_filename((char*)filename_conv.c_str());
 		tar.tar_read_send_parameters(params->client.handler, params->c_client, zip);
-		tar.tar_read((filename_conv + ".*").c_str(), filename, recordId, tableType, tarPosI);
+		tar.tar_read(filename_conv.c_str(), recordId, tableType, tarPosI);
 		if(tar.isReadEnd()) {
 			getfile_in_tar_completed.add(tar_filename, filename, dateTimeKey);
 		}

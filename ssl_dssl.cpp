@@ -11,12 +11,16 @@
 #if defined(HAVE_OPENSSL101) and defined(HAVE_LIBGNUTLS)
 
 
+static void jsonAddKey(JsonExport *json, const char *name, DSSL_Session_get_keys_data_item *key);
+static void jsonGetKey(JsonItem *json, const char *name, DSSL_Session_get_keys_data_item *key);
+
 extern map<vmIPport, string> ssl_ipport;
 extern int opt_ssl_store_sessions;
 extern int opt_ssl_store_sessions_expiration_hours;
 extern MySqlStore *sqlStore;
 extern int opt_id_sensor;
 extern int opt_nocdr;
+extern sExistsColumns existsColumns;
 
 static cSslDsslSessions *SslDsslSessions;
 
@@ -35,7 +39,7 @@ cSslDsslSession::cSslDsslSession(vmIP ip, vmPort port, string keyfile, string pa
 	process_data_counter = 0;
 	process_error = false;
 	process_error_code = 0;
-	client_random_master_secret = false;
+	get_keys_ok = false;
 	stored_at = 0;
 	restored = false;
 	lastTimeSyslog = 0;
@@ -100,9 +104,9 @@ bool cSslDsslSession::initSession() {
 	DSSL_SessionInit(NULL, session, server_info);
 	session->env = DSSL_EnvCreate(100 /*sessionTableSize*/, 3600 /*key_timeout_interval*/);
 	session->last_packet = new FILE_LINE(0) DSSL_Pkt;
-	session->gener_master_secret = this->gener_master_secret;
-	session->gener_master_secret_data[0] = this;
-	session->gener_master_secret_data[1] = SslDsslSessions;
+	session->get_keys_fce = this->get_keys;
+	session->get_keys_fce_call_data[0] = this;
+	session->get_keys_fce_call_data[1] = SslDsslSessions;
 	extern bool opt_ssl_ignore_error_invalid_mac;
 	session->ignore_error_invalid_mac = opt_ssl_ignore_error_invalid_mac;
 	memset(session->last_packet, 0, sizeof(*session->last_packet));
@@ -230,9 +234,9 @@ int cSslDsslSession::password_calback_direct(char *buf, int size, int /*rwflag*/
 	return(length);
 }
 
-int cSslDsslSession::gener_master_secret(u_char *client_random, u_char *master_secret, DSSL_Session *session) {
-	if(((cSslDsslSessions*)session->gener_master_secret_data[1])->clientRandomGet(client_random, master_secret, session->last_packet->pcap_header.ts)) {
-		((cSslDsslSession*)session->gener_master_secret_data[0])->client_random_master_secret = true;
+int cSslDsslSession::get_keys(u_char *client_random, DSSL_Session_get_keys_data *get_keys_data, DSSL_Session *session) {
+	if(((cSslDsslSessions*)session->get_keys_fce_call_data[1])->keysGet(client_random, get_keys_data, session->last_packet->pcap_header.ts)) {
+		((cSslDsslSession*)session->get_keys_fce_call_data[0])->get_keys_ok = true;
 		return(1);
 	}
 	return(0);
@@ -244,8 +248,19 @@ string cSslDsslSession::get_session_data(struct timeval ts) {
 	json.add("cipher_suite", session->cipher_suite);
 	json.add("compression_method", session->compression_method);
 	json.add("client_random", hexencode(session->client_random, sizeof(session->client_random)));
-	json.add("server_random", hexencode(session->server_random, sizeof(session->server_random)));
-	json.add("master_secret", hexencode(session->master_secret, sizeof(session->master_secret)));
+	if(session->version == TLS1_3_VERSION) {
+		jsonAddKey(&json, "key_client_random", &session->get_keys_rslt_data.client_random);
+		jsonAddKey(&json, "key_client_handshake_traffic_secret", &session->get_keys_rslt_data.client_handshake_traffic_secret);
+		jsonAddKey(&json, "key_server_handshake_traffic_secret", &session->get_keys_rslt_data.server_handshake_traffic_secret);
+		jsonAddKey(&json, "key_exporter_secret", &session->get_keys_rslt_data.exporter_secret);
+		jsonAddKey(&json, "key_client_traffic_secret_0", &session->get_keys_rslt_data.client_traffic_secret_0);
+		jsonAddKey(&json, "key_server_traffic_secret_0", &session->get_keys_rslt_data.server_traffic_secret_0);
+		json.add("seq_server", session->tls_session_server_seq);
+		json.add("seq_client", session->tls_session_client_seq);
+	} else {
+		json.add("server_random", hexencode(session->server_random, sizeof(session->server_random)));
+		json.add("master_secret", hexencode(session->master_secret, sizeof(session->master_secret)));
+	}
 	json.add("c_dec_version", session->c_dec.version);
 	json.add("s_dec_version", session->s_dec.version);
 	json.add("stored_at", ts.tv_sec);
@@ -262,11 +277,27 @@ bool cSslDsslSession::restore_session_data(const char *data) {
 	session->cipher_suite = atoi(jsonData.getValue("cipher_suite").c_str());
 	session->compression_method = atoi(jsonData.getValue("compression_method").c_str());
 	hexdecode(session->client_random, jsonData.getValue("client_random").c_str(), sizeof(session->client_random));
-	hexdecode(session->server_random, jsonData.getValue("server_random").c_str(), sizeof(session->server_random));
-	hexdecode(session->master_secret, jsonData.getValue("master_secret").c_str(), sizeof(session->master_secret));
-	if(ssls_generate_keys(session) != DSSL_RC_OK ||
-	   ssls_set_session_version(session, session->version) != DSSL_RC_OK ||
-	   dssl_decoder_stack_flip_cipher(&session->c_dec) != DSSL_RC_OK ||
+	if(session->version == TLS1_3_VERSION) {
+		jsonGetKey(&jsonData, "key_client_random", &session->get_keys_rslt_data.client_random);
+		jsonGetKey(&jsonData, "key_client_handshake_traffic_secret", &session->get_keys_rslt_data.client_handshake_traffic_secret);
+		jsonGetKey(&jsonData, "key_server_handshake_traffic_secret", &session->get_keys_rslt_data.server_handshake_traffic_secret);
+		jsonGetKey(&jsonData, "key_exporter_secret", &session->get_keys_rslt_data.exporter_secret);
+		jsonGetKey(&jsonData, "key_client_traffic_secret_0", &session->get_keys_rslt_data.client_traffic_secret_0);
+		jsonGetKey(&jsonData, "key_server_traffic_secret_0", &session->get_keys_rslt_data.server_traffic_secret_0);
+		session->tls_session_server_seq = atoll(jsonData.getValue("seq_server").c_str());
+		session->tls_session_client_seq = atoll(jsonData.getValue("seq_client").c_str());
+		if(!tls_generate_keys(session, true)) {
+			return(false);
+		}
+	} else {
+		hexdecode(session->server_random, jsonData.getValue("server_random").c_str(), sizeof(session->server_random));
+		hexdecode(session->master_secret, jsonData.getValue("master_secret").c_str(), sizeof(session->master_secret));
+		if(ssls_generate_keys(session) != DSSL_RC_OK ||
+		   ssls_set_session_version(session, session->version) != DSSL_RC_OK) {
+			return(false);
+		}
+	}
+	if(dssl_decoder_stack_flip_cipher(&session->c_dec) != DSSL_RC_OK ||
 	   dssl_decoder_stack_flip_cipher(&session->s_dec) != DSSL_RC_OK) {
 		return(false);
 	}
@@ -285,10 +316,10 @@ void cSslDsslSession::store_session(cSslDsslSessions *sessions, struct timeval t
 	if(opt_ssl_store_sessions && !opt_nocdr && sessions->exists_sessions_table &&
 	   this->process_data_counter > 0 &&
 	   this->session->c_dec.version && this->session->s_dec.version &&
-	   (!this->stored_at || this->stored_at < (u_long)(ts.tv_sec - 3600))) {
+	    (!this->stored_at || this->stored_at < (u_long)(ts.tv_sec - (session->version == TLS1_3_VERSION ? 60 : 3600)))) {
 		string session_data = get_session_data(ts);
 		SqlDb_row session_row_insert;
-		session_row_insert.add(opt_id_sensor, "id_sensor");
+		session_row_insert.add(existsColumns.ssl_sessions_id_sensor_is_unsigned && opt_id_sensor < 0 ? 0 : opt_id_sensor, "id_sensor");
 		session_row_insert.add(ip, "serverip", false, sessions->sqlDb, sessions->storeSessionsTableName().c_str());
 		session_row_insert.add(port.getPort(), "serverport");
 		session_row_insert.add(ipc, "clientip", false, sessions->sqlDb, sessions->storeSessionsTableName().c_str());
@@ -303,53 +334,75 @@ void cSslDsslSession::store_session(cSslDsslSessions *sessions, struct timeval t
 		}
 		sqlStore->query_lock(MYSQL_ADD_QUERY_END(
 				     sessions->sqlDb->insertOrUpdateQuery(sessions->storeSessionsTableName(), session_row_insert, session_row_update, false, true)),
-				     STORE_PROC_ID_OTHER);
+				     STORE_PROC_ID_OTHER, 0);
 		this->stored_at = ts.tv_sec;
 		sessions->deleteOldSessions(ts);
 	}
 }
 
 
-cSslDsslClientRandomItems::cSslDsslClientRandomIndex::cSslDsslClientRandomIndex(u_char *client_random) {
+cSslDsslSessionKeys::cSslDsslSessionKeyIndex::cSslDsslSessionKeyIndex(u_char *client_random) {
 	if(client_random) {
 		memcpy(this->client_random, client_random, SSL3_RANDOM_SIZE);
 	}
 }
 
-cSslDsslClientRandomItems::cSslDsslClientRandomItem::cSslDsslClientRandomItem(u_char *master_secret) {
-	if(master_secret) {
-		memcpy(this->master_secret, master_secret, SSL3_MASTER_SECRET_SIZE);
+cSslDsslSessionKeys::cSslDsslSessionKeyItem::cSslDsslSessionKeyItem(u_char *key, unsigned key_length) {
+	if(key) {
+		memcpy(this->key, key, key_length);
+		this->key_length = key_length;
 		set_at = getTimeS();
 	}
 }
 
-cSslDsslClientRandomItems::cSslDsslClientRandomItems() {
+cSslDsslSessionKeys::sSessionKeyType cSslDsslSessionKeys::session_key_types[] = {
+	{ "CLIENT_RANDOM", cSslDsslSessionKeys::_skt_client_random, 0 },
+	{ "CLIENT_HANDSHAKE_TRAFFIC_SECRET", cSslDsslSessionKeys::_skt_client_handshake_traffic_secret, 0 },
+	{ "SERVER_HANDSHAKE_TRAFFIC_SECRET", cSslDsslSessionKeys::_skt_server_handshake_traffic_secret, 0 },
+	{ "EXPORTER_SECRET", cSslDsslSessionKeys::_skt_exporter_secret, 0 },
+	{ "CLIENT_TRAFFIC_SECRET_0", cSslDsslSessionKeys::_skt_client_traffic_secret_0, 0 },
+	{ "SERVER_TRAFFIC_SECRET_0", cSslDsslSessionKeys::_skt_server_traffic_secret_0, 0 },
+	{ NULL, cSslDsslSessionKeys::_skt_na, 0 }
+};
+
+cSslDsslSessionKeys::cSslDsslSessionKeys() {
 	_sync_map = 0;
 	last_cleanup_at = 0;
+	for(unsigned i = 0; session_key_types[i].str; i++) {
+		session_key_types[i].length = strlen(session_key_types[i].str);
+	}
 }
 
-cSslDsslClientRandomItems::~cSslDsslClientRandomItems() {
+cSslDsslSessionKeys::~cSslDsslSessionKeys() {
 	clear();
 }
 
-void cSslDsslClientRandomItems::set(u_char *client_random, u_char *master_secret) {
-	cSslDsslClientRandomIndex index(client_random);
-	cSslDsslClientRandomItem *item = new FILE_LINE(0) cSslDsslClientRandomItem(master_secret);
-	lock_map();
-	if(map_client_random[index]) {
-		delete map_client_random[index];
+void cSslDsslSessionKeys::set(const char *type, u_char *client_random, u_char *key, unsigned key_length) {
+	eSessionKeyType type_e = strToEnumType(type);
+	if(type_e == _skt_na) {
+		return;
 	}
-	map_client_random[index] = item;
+	set(type_e, client_random, key, key_length);
+}
+
+void cSslDsslSessionKeys::set(eSessionKeyType type, u_char *client_random, u_char *key, unsigned key_length) {
+	cSslDsslSessionKeyIndex index(client_random);
+	cSslDsslSessionKeyItem *item = new FILE_LINE(0) cSslDsslSessionKeyItem(key, key_length);
+	lock_map();
+	if(keys[index][type]) {
+		delete keys[index][type];
+	}
+	keys[index][type] = item;
 	unlock_map();
 }
 
-bool cSslDsslClientRandomItems::get(u_char *client_random, u_char *master_secret, struct timeval ts) {
+bool cSslDsslSessionKeys::get(u_char *client_random, eSessionKeyType type, u_char *key, unsigned *key_length, struct timeval ts) {
 	if(sverb.ssl_sessionkey) {
-		cout << "find clientrandom" << endl;
-		hexdump(client_random, 32);
+		cout << "find clientrandom with type " << enumToStrType(type) << endl;
+		hexdump(client_random, SSL3_RANDOM_SIZE);
 	}
 	bool rslt = false;
-	cSslDsslClientRandomIndex index(client_random);
+	cSslDsslSessionKeyIndex index(client_random);
 	int64_t waitUS = -1;
 	extern int ssl_client_random_maxwait_ms;
 	if(ssl_client_random_maxwait_ms > 0) {
@@ -360,10 +413,14 @@ bool cSslDsslClientRandomItems::get(u_char *client_random, u_char *master_secret
 	}
 	do {
 		lock_map();
-		map<cSslDsslClientRandomIndex, cSslDsslClientRandomItem*>::iterator iter = map_client_random.find(index);
-		if(iter != map_client_random.end()) {
-			memcpy(master_secret, iter->second->master_secret, SSL3_MASTER_SECRET_SIZE);
-			rslt = true;
+		map<cSslDsslSessionKeyIndex, map<eSessionKeyType, cSslDsslSessionKeyItem*> >::iterator iter1 = keys.find(index);
+		if(iter1 != keys.end()) {
+			map<eSessionKeyType, cSslDsslSessionKeyItem*>::iterator iter2 = iter1->second.find(type);
+			if(iter2 != iter1->second.end()) {
+				memcpy(key, iter2->second->key, iter2->second->key_length);
+				*key_length = iter2->second->key_length;
+				rslt = true;
+			}
 		}
 		unlock_map();
 		if(!rslt) {
@@ -377,31 +434,114 @@ bool cSslDsslClientRandomItems::get(u_char *client_random, u_char *master_secret
 	} while(!rslt && waitUS >= 0);
 	if(sverb.ssl_sessionkey && rslt) {
 		cout << "* clientrandom found" << endl;
+		hexdump(key, *key_length);
 	}
 	return(rslt);
 }
 
-void cSslDsslClientRandomItems::erase(u_char *client_random) {
-	cSslDsslClientRandomIndex index(client_random);
+bool cSslDsslSessionKeys::get(u_char *client_random, DSSL_Session_get_keys_data *keys, struct timeval ts) {
+	if(sverb.ssl_sessionkey) {
+		cout << "find clientrandom for all type" << endl;
+		hexdump(client_random, SSL3_RANDOM_SIZE);
+	}
+	bool rslt = false;
+	cSslDsslSessionKeyIndex index(client_random);
+	int64_t waitUS = -1;
+	extern int ssl_client_random_maxwait_ms;
+	if(ssl_client_random_maxwait_ms > 0) {
+		extern PcapQueue_readFromFifo *pcapQueueQ;
+		if(pcapQueueQ) {
+			waitUS = pcapQueueQ->getLastUS() - getTimeUS(ts);
+		}
+	}
+	do {
+		lock_map();
+		map<cSslDsslSessionKeyIndex, map<eSessionKeyType, cSslDsslSessionKeyItem*> >::iterator iter1 = this->keys.find(index);
+		if(iter1 != this->keys.end() && iter1->second.size()) {
+			map<eSessionKeyType, cSslDsslSessionKeyItem*>::iterator iter2;
+			for(iter2 = iter1->second.begin(); iter2 != iter1->second.end(); iter2++) {
+				DSSL_Session_get_keys_data_item *key_dst = NULL;
+				switch(iter2->first) {
+				case _skt_client_random:
+					key_dst = &keys->client_random;
+					break;
+				case _skt_client_handshake_traffic_secret:
+					key_dst = &keys->client_handshake_traffic_secret;
+					break;
+				case _skt_server_handshake_traffic_secret:
+					key_dst = &keys->server_handshake_traffic_secret;
+					break;
+				case _skt_exporter_secret:
+					key_dst = &keys->exporter_secret;
+					break;
+				case _skt_client_traffic_secret_0:
+					key_dst = &keys->client_traffic_secret_0;
+					break;
+				case _skt_server_traffic_secret_0:
+					key_dst = &keys->server_traffic_secret_0;
+					break;
+				case _skt_na:
+					break;
+				}
+				if(key_dst) {
+					memcpy(key_dst->key, iter2->second->key, iter2->second->key_length);
+					key_dst->length = iter2->second->key_length;
+				}
+			}
+			if(keys->client_random.key[0] ||
+			   (keys->client_traffic_secret_0.key[0] && keys->server_traffic_secret_0.key[0])) {
+				rslt =true;
+				keys->set = true;
+			}
+		}
+		unlock_map();
+		if(!rslt) {
+			if(waitUS >= 0 && waitUS < ssl_client_random_maxwait_ms * 1000ll) {
+				USLEEP(1000);
+				waitUS += 1000;
+			} else {
+				break;
+			}
+		}
+	} while(!rslt && waitUS >= 0);
+	if(sverb.ssl_sessionkey) {
+		cout << "* clientrandom " << (rslt ? "found" : "not found") << endl;
+	}
+	return(rslt);
+}
+
+void cSslDsslSessionKeys::erase(u_char *client_random) {
+	cSslDsslSessionKeyIndex index(client_random);
 	lock_map();
-	map<cSslDsslClientRandomIndex, cSslDsslClientRandomItem*>::iterator iter = map_client_random.find(index);
-	if(iter != map_client_random.end()) {
-		delete iter->second;
-		map_client_random.erase(iter);
+	map<cSslDsslSessionKeyIndex, map<eSessionKeyType, cSslDsslSessionKeyItem*> >::iterator iter1 = keys.find(index);
+	if(iter1 != keys.end()) {
+		map<eSessionKeyType, cSslDsslSessionKeyItem*>::iterator iter2;
+		for(iter2 = iter1->second.begin(); iter2 != iter1->second.end(); iter2++) {
+			delete iter2->second;
+		}
+		keys.erase(iter1);
 	}
 	unlock_map();
 }
 
-void cSslDsslClientRandomItems::cleanup() {
+void cSslDsslSessionKeys::cleanup() {
 	u_int32_t now = getTimeS();
 	if(!last_cleanup_at || last_cleanup_at + 600 < now) {
 		lock_map();
-		for(map<cSslDsslClientRandomIndex, cSslDsslClientRandomItem*>::iterator iter = map_client_random.begin(); iter != map_client_random.end();) {
-			if(iter->second->set_at + 3600 < now) {
-				delete iter->second;
-				map_client_random.erase(iter++);
+		for(map<cSslDsslSessionKeyIndex, map<eSessionKeyType, cSslDsslSessionKeyItem*> >::iterator iter1 = keys.begin(); iter1 != keys.end();) {
+			map<eSessionKeyType, cSslDsslSessionKeyItem*>::iterator iter2;
+			for(iter2 = iter1->second.begin(); iter2 != iter1->second.end();) {
+				if(iter2->second->set_at + 3600 < now) {
+					delete iter2->second;
+					iter1->second.erase(iter2++);
+				} else {
+					iter2++;
+				}
+			}
+			if(!iter1->second.size()) {
+				keys.erase(iter1++);
 			} else {
-				iter++;
+				iter1++;
 			}
 		}
 		unlock_map();
@@ -409,13 +549,34 @@ void cSslDsslClientRandomItems::cleanup() {
 	}
 }
 
-void cSslDsslClientRandomItems::clear() {
+void cSslDsslSessionKeys::clear() {
 	lock_map();
-	for(map<cSslDsslClientRandomIndex, cSslDsslClientRandomItem*>::iterator iter = map_client_random.begin(); iter != map_client_random.end(); iter++) {
-		delete iter->second;
+	for(map<cSslDsslSessionKeyIndex, map<eSessionKeyType, cSslDsslSessionKeyItem*> >::iterator iter1 = keys.begin(); iter1 != keys.end(); iter1++) {
+		map<eSessionKeyType, cSslDsslSessionKeyItem*>::iterator iter2;
+		for(iter2 = iter1->second.begin(); iter2 != iter1->second.end(); iter2++) {
+			delete iter2->second;
+		}
 	}
-	map_client_random.clear();
+	keys.clear();
 	unlock_map();
+}
+
+cSslDsslSessionKeys::eSessionKeyType cSslDsslSessionKeys::strToEnumType(const char *type) {
+	for(unsigned i = 0; session_key_types[i].str; i++) {
+		if(!strcasecmp(session_key_types[i].str, type)) {
+			return(session_key_types[i].type);
+		}
+	}
+	return(_skt_na);
+}
+
+const char *cSslDsslSessionKeys::enumToStrType(eSessionKeyType type) {
+	for(unsigned i = 0; session_key_types[i].str; i++) {
+		if(session_key_types[i].type ==  type) {
+			return(session_key_types[i].str);
+		}
+	}
+	return("");
 }
 
 
@@ -533,8 +694,8 @@ void cSslDsslSessions::destroySession(vmIP saddr, vmIP daddr, vmPort sport, vmPo
 	map<sStreamId, cSslDsslSession*>::iterator iter_session;
 	iter_session = sessions.find(sid);
 	if(iter_session != sessions.end()) {
-		if(iter_session->second->client_random_master_secret) {
-			clientRandomErase(iter_session->second->session->client_random);
+		if(iter_session->second->get_keys_ok) {
+			keyErase(iter_session->second->session->client_random);
 		}
 		delete iter_session->second;
 		sessions.erase(iter_session);
@@ -542,20 +703,24 @@ void cSslDsslSessions::destroySession(vmIP saddr, vmIP daddr, vmPort sport, vmPo
 	unlock_sessions();
 }
 
-void cSslDsslSessions::clientRandomSet(u_char *client_random, u_char *master_secret) {
-	this->client_random.set(client_random, master_secret);
+void cSslDsslSessions::keySet(const char *type, u_char *client_random, u_char *key, unsigned key_length) {
+	this->session_keys.set(type, client_random, key, key_length);
 }
 
-bool cSslDsslSessions::clientRandomGet(u_char *client_random, u_char *master_secret, struct timeval ts) {
-	return(this->client_random.get(client_random, master_secret, ts));
+bool cSslDsslSessions::keyGet(u_char *client_random, cSslDsslSessionKeys::eSessionKeyType type, u_char *key, unsigned *key_length, struct timeval ts) {
+	return(this->session_keys.get(client_random, type, key, key_length, ts));
 }
 
-void cSslDsslSessions::clientRandomErase(u_char *client_random) {
-	this->client_random.erase(client_random);
+bool cSslDsslSessions::keysGet(u_char *client_random, DSSL_Session_get_keys_data *get_keys_data, struct timeval ts) {
+	return(this->session_keys.get(client_random, get_keys_data, ts));
 }
 
-void cSslDsslSessions::clientRandomCleanup() {
-	this->client_random.cleanup();
+void cSslDsslSessions::keyErase(u_char *client_random) {
+	this->session_keys.erase(client_random);
+}
+
+void cSslDsslSessions::keysCleanup() {
+	this->session_keys.cleanup();
 }
 
 cSslDsslSession *cSslDsslSessions::addSession(vmIP ip, vmPort port) {
@@ -602,7 +767,7 @@ void cSslDsslSessions::loadSessions() {
 		return;
 	}
 	list<SqlDb_condField> cond;
-	cond.push_back(SqlDb_condField("id_sensor", intToString(opt_id_sensor)));
+	cond.push_back(SqlDb_condField("id_sensor", intToString(existsColumns.ssl_sessions_id_sensor_is_unsigned && opt_id_sensor < 0 ? 0 : opt_id_sensor)));
 	cond.push_back(SqlDb_condField("stored_at", sqlDateTimeString(getTimeS() - opt_ssl_store_sessions_expiration_hours * 3600)).setOper(">"));
 	sqlDb->select(storeSessionsTableName(), NULL, &cond);
 	SqlDb_row row;
@@ -630,7 +795,7 @@ void cSslDsslSessions::deleteOldSessions(struct timeval ts) {
 		cond.push_back(SqlDb_condField("stored_at", sqlDateTimeString(ts.tv_sec - opt_ssl_store_sessions_expiration_hours * 3600)).setOper("<"));
 		sqlStore->query_lock(MYSQL_ADD_QUERY_END(
 				     "delete from " + storeSessionsTableName() + " where " + sqlDb->getCondStr(&cond)),
-				     STORE_PROC_ID_OTHER);
+				     STORE_PROC_ID_OTHER, 0);
 		last_delete_old_sessions_at = ts.tv_sec;
 	}
 }
@@ -638,6 +803,74 @@ void cSslDsslSessions::deleteOldSessions(struct timeval ts) {
 string cSslDsslSessions::storeSessionsTableName() {
 	return(opt_ssl_store_sessions == 1 ? "ssl_sessions_mem" :
 	       opt_ssl_store_sessions == 2 ? "ssl_sessions" : "");
+}
+
+
+cClientRandomServer::cClientRandomServer() {
+}
+
+cClientRandomServer::~cClientRandomServer() {
+}
+
+void cClientRandomServer::createConnection(cSocket *socket) {
+	if(is_terminating()) {
+		return;
+	}
+	cClientRandomConnection *connection = new FILE_LINE(0) cClientRandomConnection(socket);
+	connection->connection_start();
+}
+
+cClientRandomConnection::cClientRandomConnection(cSocket *socket)
+: cServerConnection(socket) {
+}
+
+cClientRandomConnection::~cClientRandomConnection() {
+}
+
+void cClientRandomConnection::connection_process() {
+	socket->setBlockHeaderString("ssl_key_socket_block");
+	string rsltRsaKey;
+	if(!socket->readBlock(&rsltRsaKey) || rsltRsaKey.find("key") == string::npos) {
+		socket->setError("failed read rsa key");
+		delete this;
+		return;
+	}
+	JsonItem jsonRsaKey;
+	jsonRsaKey.parse(rsltRsaKey);
+	string rsa_key = jsonRsaKey.getValue("rsa_key");
+	socket->set_rsa_pub_key(rsa_key);
+	socket->generate_aes_keys();
+	JsonExport json_keys;
+	string aes_ckey, aes_ivec;
+	socket->get_aes_keys(&aes_ckey, &aes_ivec);
+	json_keys.add("aes_ckey", aes_ckey);
+	json_keys.add("aes_ivec", aes_ivec);
+	if(!socket->writeBlock(json_keys.getJson(), cSocket::_te_rsa)) {
+		socket->setError("failed send aes keys");
+		delete this;
+		return;
+	}
+	string rsltOk;
+	if(!socket->readBlock(&rsltOk, cSocket::_te_aes) || rsltOk != "OK") {
+		socket->setError("failed read ok");
+		delete this;
+		return;
+	}
+	while(!is_terminating() && !socket->isError()) {
+		u_char *data;
+		size_t dataLen;
+		data = socket->readBlock(&dataLen, cSocket::_te_aes);
+		if(data) {
+			evData(data, dataLen);
+		} else {
+			USLEEP(1000);
+		}
+	}
+	delete this;
+}
+
+void cClientRandomConnection::evData(u_char *data, size_t dataLen) {
+	ssl_parse_client_random(data, dataLen);
 }
 
 
@@ -671,8 +904,27 @@ void decrypt_ssl_dssl(vector<string> *rslt_decrypt, char *data, unsigned int dat
 void end_decrypt_ssl_dssl(vmIP saddr, vmIP daddr, vmPort sport, vmPort dport) {
 	#if defined(HAVE_OPENSSL101) and defined(HAVE_LIBGNUTLS)
 	SslDsslSessions->destroySession(saddr, daddr, sport, dport);
-	SslDsslSessions->clientRandomCleanup();
+	SslDsslSessions->keysCleanup();
 	#endif //HAVE_OPENSSL101 && HAVE_LIBGNUTLS
+}
+
+bool string_looks_like_client_random(u_char *data, unsigned datalen) {
+	#if defined(HAVE_OPENSSL101) and defined(HAVE_LIBGNUTLS)
+	if(!datalen) {
+		return(false);
+	}
+	if(data[0] == '{' && data[datalen - 1] == '}') {
+		return(true);
+	}
+	for(unsigned i = 0; cSslDsslSessionKeys::session_key_types[i].str; i++) {
+		if(datalen > cSslDsslSessionKeys::session_key_types[i].length &&
+		   toupper(data[0]) == cSslDsslSessionKeys::session_key_types[i].str[0] &&
+		   !strncasecmp(cSslDsslSessionKeys::session_key_types[i].str, (char*)data, cSslDsslSessionKeys::session_key_types[i].length)) {
+			return(true);
+		}
+	}
+	#endif //HAVE_OPENSSL101 && HAVE_LIBGNUTLS
+	return(false);
 }
 
 bool ssl_parse_client_random(u_char *data, unsigned datalen) {
@@ -680,20 +932,43 @@ bool ssl_parse_client_random(u_char *data, unsigned datalen) {
 	if(!SslDsslSessions) {
 		return(false);
 	}
-	JsonItem jsonData;
-	jsonData.parse(string((char*)data, datalen).c_str());
-	string sessionid = jsonData.getValue("sessionid");
-	string mastersecret = jsonData.getValue("mastersecret");
-	if(sessionid.length() == SSL3_RANDOM_SIZE * 2 &&
-	   mastersecret.length() == SSL3_MASTER_SECRET_SIZE * 2) {
-		u_char client_random[SSL3_RANDOM_SIZE];
-		u_char master_secret[SSL3_MASTER_SECRET_SIZE];
-		hexdecode(client_random, sessionid.c_str(), SSL3_RANDOM_SIZE);
-		hexdecode(master_secret, mastersecret.c_str(), SSL3_MASTER_SECRET_SIZE);
-		SslDsslSessions->clientRandomSet(client_random, master_secret);
+	string data_s((char*)data, datalen);
+	string type;
+	string client_random;
+	string key;
+	if(isJsonObject(data_s)) {
+		JsonItem jsonData;
+		jsonData.parse(data_s.c_str());
+		if(jsonData.getItem("sessionid") && jsonData.getItem("mastersecret")) {
+			type = "client_random";
+			client_random = jsonData.getValue("sessionid");
+			key = jsonData.getValue("mastersecret");
+		} else if(jsonData.getItem("type") && jsonData.getItem("client_random") && jsonData.getItem("key")) {
+			type = jsonData.getValue("type");
+			client_random = jsonData.getValue("client_random");
+			key = jsonData.getValue("key");
+		}
+	} else {
+		vector<string> parts = split(data_s.c_str(), " ", true);
+		if(parts.size() == 3 && parts[1].length() == SSL3_RANDOM_SIZE * 2 && 
+		   (parts[2].length() == SSL3_MASTER_SECRET_SIZE * 2 || parts[2].length() == 32 * 2)) {
+			type = parts[0];
+			client_random = parts[1];
+			key = parts[2];
+		}
+	}
+	if(type.length()) {
+		u_char client_random_[SSL3_RANDOM_SIZE];
+		u_char key_[SSL3_MASTER_SECRET_SIZE];
+		unsigned key_length = key.length() / 2;
+		hexdecode(client_random_, client_random.c_str(), SSL3_RANDOM_SIZE);
+		hexdecode(key_, key.c_str(), key_length);
+		SslDsslSessions->keySet(type.c_str(), client_random_, key_, key_length);
 		if(sverb.ssl_sessionkey) {
-			cout << "set clientrandom" << endl;
-			hexdump(client_random, 32);
+			cout << "set clientrandom with type " << type << endl;
+			hexdump(client_random_, SSL3_RANDOM_SIZE);
+			cout << "key" << endl;
+			hexdump(key_, key_length);
 		}
 		return(true);
 	}
@@ -712,19 +987,65 @@ void ssl_parse_client_random(const char *fileName) {
 	}
 	char buff[1024];
 	while(fgets(buff, sizeof(buff), file)) {
-		vector<string> parts = split(buff, ' ');
-		if(parts.size() == 3 && parts[0] == "CLIENT_RANDOM") {
+		unsigned length = strlen(buff);
+		while(length > 0 && (buff[length - 1] == '\n' || buff[length - 1] == '\r')) {
+			buff[length - 1] = 0;
+			--length;
+		}
+		vector<string> parts = split(buff, " ", true);
+		if(parts.size() == 3 && parts[1].length() == SSL3_RANDOM_SIZE * 2 && 
+		   (parts[2].length() == SSL3_MASTER_SECRET_SIZE * 2 || parts[2].length() == 32 * 2)) {
 			u_char client_random[SSL3_RANDOM_SIZE];
-			u_char master_secret[SSL3_MASTER_SECRET_SIZE];
+			u_char key[SSL3_MASTER_SECRET_SIZE];
+			unsigned key_length = parts[2].length() / 2;
 			hexdecode(client_random, parts[1].c_str(), SSL3_RANDOM_SIZE);
-			hexdecode(master_secret, parts[2].c_str(), SSL3_MASTER_SECRET_SIZE);
-			SslDsslSessions->clientRandomSet(client_random, master_secret);
+			hexdecode(key, parts[2].c_str(), key_length);
+			SslDsslSessions->keySet(parts[0].c_str(), client_random, key, key_length);
 			if(sverb.ssl_sessionkey) {
-				cout << "set clientrandom" << endl;
-				hexdump(client_random, 32);
+				cout << "set clientrandom with type " << parts[0] << endl;
+				hexdump(client_random, SSL3_RANDOM_SIZE);
+				cout << "key" << endl;
+				hexdump(key, key_length);
 			}
 		}
 	}
 	fclose(file);
+	#endif //HAVE_OPENSSL101 && HAVE_LIBGNUTLS
+}
+
+void jsonAddKey(JsonExport *json, const char *name, DSSL_Session_get_keys_data_item *key) {
+	json->add(name, hexencode(key->key, key->length));
+}
+
+void jsonGetKey(JsonItem *json, const char *name, DSSL_Session_get_keys_data_item *key) {
+	string key_str = json->getValue(name);
+	if(!key_str.empty()) {
+		hexdecode(key->key, key_str.c_str(), key_str.length());
+		key->length = key_str.length() / 2;
+	}
+}
+
+
+#if defined(HAVE_OPENSSL101) and defined(HAVE_LIBGNUTLS)
+static cClientRandomServer *clientRandomServer;
+#endif //HAVE_OPENSSL101 && HAVE_LIBGNUTLS
+
+void clientRandomServerStart(const char *host, int port) {
+	#if defined(HAVE_OPENSSL101) and defined(HAVE_LIBGNUTLS)
+	if(clientRandomServer) {
+		delete clientRandomServer;
+	}
+	clientRandomServer =  new FILE_LINE(0) cClientRandomServer;
+	clientRandomServer->setStartVerbString("START SSL_SESSIONKEY LISTEN");
+	clientRandomServer->listen_start("client_random_server", host, port);
+	#endif //HAVE_OPENSSL101 && HAVE_LIBGNUTLS
+}
+
+void clientRandomServerStop() {
+	#if defined(HAVE_OPENSSL101) and defined(HAVE_LIBGNUTLS)
+	if(clientRandomServer) {
+		delete clientRandomServer;
+		clientRandomServer = NULL;
+	}
 	#endif //HAVE_OPENSSL101 && HAVE_LIBGNUTLS
 }

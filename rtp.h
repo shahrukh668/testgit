@@ -117,6 +117,9 @@ The RTP header has the following format:
 
 #define ROT_SEQ(seq) ((seq) & (RTP_SEQ_MOD - 1))
 
+#define FIRST_RTCP_CONFLICT_PAYLOAD_TYPE 72
+#define LAST_RTCP_CONFLICT_PAYLOAD_TYPE  76
+
 
 struct RTPFixedHeader {
 #if     __BYTE_ORDER == __BIG_ENDIAN
@@ -333,6 +336,16 @@ public:
 		unsigned int counter;
 		unsigned int jitt_counter;
 		unsigned int fraclost_pkt_counter;
+		u_int32_t lsr4compare;
+		u_int32_t last_lsr;
+		u_int32_t last_lsr_delay;
+		struct timeval sniff_ts;
+		unsigned int rtd_sum;	/* roundtrip delay */
+		unsigned int rtd_count;
+		unsigned int rtd_max;
+		unsigned int rtd_w_sum;	/* roundtrip delay by wireshark*/
+		unsigned int rtd_w_count;
+		unsigned int rtd_w_max;
 	} rtcp;
 
 	struct rtcp_xr_t {
@@ -495,10 +508,10 @@ public:
 	 *
 	 * @return SSRC
 	*/
-	const int getPayload() { return getHeader()->payload; };
-	static const int getPayload(void *data) { return getHeader(data)->payload; };
+	inline const int getPayload() { return getHeader()->payload; };
+	static inline const int getPayload(void *data) { return getHeader(data)->payload; };
 	/**
-	 * @brief get SSRC
+	 * @brief get Received
 	 *
 	 * this function gets number of received packets
 	 *
@@ -506,14 +519,18 @@ public:
 	*/
 	const u_int32_t getReceived() { return s->received; };
 
-	/**
-	 * @brief get SSRC
-	 *
-	 * this function gets number of received packets
-	 *
-	 * @return received packets
-	*/
-	const int getMarker() { return getHeader()->marker ? 1 : forcemark; };
+	inline const int getMarker() { return getHeader()->marker ? 1 : forcemark; };
+	
+	inline const bool isSetMarkerInHeader() { return getHeader()->marker; };
+	static inline const bool isSetMarkerInHeader(void *data) { return getHeader(data)->marker; };
+	
+	static inline const bool isRTCP_enforce(void *data) { 
+		if(isSetMarkerInHeader(data)) {
+			int payload = getPayload(data);
+			return(payload >= FIRST_RTCP_CONFLICT_PAYLOAD_TYPE && payload <= LAST_RTCP_CONFLICT_PAYLOAD_TYPE);
+		}
+		return(false);
+	};
 
 	/**
 	 * @brief get padding

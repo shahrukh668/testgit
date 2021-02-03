@@ -493,6 +493,15 @@ public:
 	static void addDelayQuery(u_int32_t delay_ms, bool store = false);
 	static u_int32_t getAvgDelayQuery(bool store = false);
 	static void resetDelayQuery(bool store = false);
+	inline static void addQueryCount(u_int64_t qc) {
+		query_count += qc;
+	}
+	inline static u_int64_t getQueryCount() {
+		return(query_count);
+	}
+	inline static void resetQueryCount() {
+		query_count = 0;
+	}
 	bool logNeedAlter(string table, string reason, string alter,
 			  bool log, map<string, u_int64_t> *tableSize, bool *existsColumnFlag);
 	int checkNeedAlterAdd(string table, string reason, bool tryAlter,
@@ -550,6 +559,7 @@ private:
 	static volatile u_int32_t delayQuery_count;
 	static volatile u_int64_t delayQueryStore_sum_ms;
 	static volatile u_int32_t delayQueryStore_count;
+	static volatile u_int64_t query_count;
 	cSocketBlock *remote_socket;
 friend class MySqlStore_process;
 };
@@ -783,7 +793,7 @@ private:
 
 class MySqlStore_process {
 public:
-	MySqlStore_process(int id, class MySqlStore *parentStore,
+	MySqlStore_process(int id_main, int id_2, class MySqlStore *parentStore,
 			   const char *host, const char *user, const char *password, const char *database, u_int16_t port, const char *socket,
 			   const char *cloud_host, const char *cloud_token, bool cloud_router, int concatLimit, mysqlSSLOptions *mySSLOpt);
 	~MySqlStore_process();
@@ -809,20 +819,21 @@ public:
 	int getConcatLimit();
 	void setEnableTransaction(bool enableTransaction = true);
 	void setEnableFixDeadlock(bool enableFixDeadlock = true);
-	int getId() {
-		return(this->id);
+	int getIdMain() {
+		return(this->id_main);
+	}
+	int getId2() {
+		return(this->id_2);
 	}
 	size_t getSize() {
 		return(this->query_buff.size());
-	}
-	bool operator < (const MySqlStore_process& other) const { 
-		return(this->id < other.id); 
 	}
 	void waitForTerminate();
 private:
 	string getInsertFuncName();
 private:
-	int id;
+	int id_main;
+	int id_2;
 	MySqlStore *parentStore;
 	int concatLimit;
 	bool enableTransaction;
@@ -929,7 +940,7 @@ private:
 	};
 	struct LoadFromQFilesThreadData {
 		LoadFromQFilesThreadData() {
-			id = 0;
+			id_main = 0;
 			storeThreads = 1;
 			storeConcatLimit = 0;
 			store = NULL;
@@ -947,7 +958,7 @@ private:
 		void unlock() {
 			__sync_lock_release(&_sync);
 		}
-		int id;
+		int id_main;
 		string name;
 		int storeThreads;
 		int storeConcatLimit;
@@ -958,11 +969,11 @@ private:
 	};
 	struct LoadFromQFilesThreadInfo {
 		MySqlStore *store;
-		int id;
+		int id_main;
 	};
 	struct QFileData {
 		string filename;
-		int id;
+		int id_main;
 		u_int64_t time;
 	};
 public:
@@ -975,60 +986,58 @@ public:
 	void loadFromQFiles(bool enable = true, const char *directory = NULL, int period = 0);
 	void queryToFiles_start();
 	void loadFromQFiles_start();
-	void connect(int id);
-	void query(const char *query_str, int id);
-	void query(string query_str, int id);
-	void query_lock(const char *query_str, int id);
-	void query_lock(list<string> *query_str, int id);
-	void query_lock(string query_str, int id);
+	void connect(int id_main, int id_2);
+	void query(const char *query_str, int id_main, int id_2);
+	void query(string query_str, int id_main, int id_2);
+	void query_lock(const char *query_str, int id_main, int id_2);
+	void query_lock(list<string> *query_str, int id_main, int id_2);
+	void query_lock(string query_str, int id_main, int id_2);
 	// qfiles
-	void query_to_file(const char *query_str, int id);
+	void query_to_file(const char *query_str, int id_main);
 	string getQFilename(int idc, u_int64_t actTime);
-	int convIdForQFile(int id);
 	void closeAllQFiles();
 	void clearAllQFiles();
 	bool existFilenameInQFiles(const char *filename);
 	void enableInotifyForLoadFromQFile(bool enableINotify = true);
 	void setInotifyReadyForLoadFromQFile(bool iNotifyReady = true);
-	void addLoadFromQFile(int id, const char *name, 
+	void addLoadFromQFile(int id_main, const char *name, 
 			      int storeThreads = 0, int storeConcatLimit = 0,
 			      MySqlStore *store = NULL);
-	bool fillQFiles(int id);
-	string getMinQFile(int id);
-	int getCountQFiles(int id);
-	bool loadFromQFile(const char *filename, int id, bool onlyCheck = false);
+	bool fillQFiles(int id_main);
+	string getMinQFile(int id_main);
+	int getCountQFiles(int id_main);
+	bool loadFromQFile(const char *filename, int id_main, bool onlyCheck = false);
 	void addFileFromINotify(const char *filename);
 	QFileData parseQFilename(const char *filename);
 	string getLoadFromQFilesStat(bool processes = false);
 	unsigned getLoadFromQFilesCount();
 	//
-	void lock(int id);
-	void unlock(int id);
-	void setEnableTerminatingDirectly(int id, bool enableTerminatingDirectly);
-	void setEnableTerminatingIfEmpty(int id, bool enableTerminatingIfEmpty);
-	void setEnableTerminatingIfSqlError(int id, bool enableTerminatingIfSqlError);
-	void setEnableAutoDisconnect(int id, bool enableAutoDisconnect = true);
+	void lock(int id_main, int id_2);
+	void unlock(int id_main, int id_2);
+	void setEnableTerminatingDirectly(int id_main, int id_2, bool enableTerminatingDirectly);
+	void setEnableTerminatingIfEmpty(int id_main, int id_2, bool enableTerminatingIfEmpty);
+	void setEnableTerminatingIfSqlError(int id_main, int id_2, bool enableTerminatingIfSqlError);
+	void setEnableAutoDisconnect(int id_main, int id_2, bool enableAutoDisconnect = true);
 	void setDefaultConcatLimit(int defaultConcatLimit);
-	void setConcatLimit(int id, int concatLimit);
-	int getConcatLimit(int id);
-	void setEnableTransaction(int id, bool enableTransaction = true);
-	void setEnableFixDeadlock(int id, bool enableFixDeadlock = true);
-	MySqlStore_process *find(int id, MySqlStore *store = NULL);
-	MySqlStore_process *check(int id);
+	void setConcatLimit(int id_main, int id_2, int concatLimit);
+	int getConcatLimit(int id_main, int id_2);
+	void setEnableTransaction(int id_main, int id_2, bool enableTransaction = true);
+	void setEnableFixDeadlock(int id_main, int id_2, bool enableFixDeadlock = true);
+	MySqlStore_process *find(int id_main, int id_2, MySqlStore *store = NULL);
+	MySqlStore_process *check(int id_main, int id_2);
 	size_t getAllSize(bool lock = true);
-	int getSize(int id, bool lock = true);
-	int getSizeMult(int n, ...);
-	int getSizeVect(int id1, int id2, bool lock = true);
-	int getActiveIdsVect(int id1, int id2, bool lock = true);
+	int getSize(int id_main, int id_2, bool lock = true);
+	int getCountActive(int id_main, bool lock = true);
+	void fillSizeMap(map<int, int> *size_map, map<int, int> *size_map_by_id_2, bool lock = true);
 	string exportToFile(FILE *file, string filename, bool sqlFormat, bool cleanAfterExport);
 	void autoloadFromSqlVmExport();
 	string getSqlVmExportDirectory();
 	bool isCloud() {
 		return(cloud_host[0] && cloud_token[0] && cloud_router);
 	}
-	int convStoreId(int id);
-	int getMaxThreadsForStoreId(int id);
-	int getConcatLimitForStoreId(int id);
+	int findMinId2(int id_main);
+	int getMaxThreadsForStoreId(int id_main);
+	int getConcatLimitForStoreId(int id_main);
 private:
 	static void *threadQFilesCheckPeriod(void *arg);
 	static void *threadLoadFromQFiles(void *arg);
@@ -1049,10 +1058,10 @@ private:
 		return(!idIsCharts(id) && !idIsChartsRemote(id));
 	}
 	bool idIsCharts(int id) {
-		return(id / 10 == STORE_PROC_ID_CHARTS_CACHE_1 / 10);
+		return(id == STORE_PROC_ID_CHARTS_CACHE);
 	}
 	bool idIsChartsRemote(int id) {
-		return(id / 10 == STORE_PROC_ID_CHARTS_CACHE_REMOTE1 / 10);
+		return(id == STORE_PROC_ID_CHARTS_CACHE_REMOTE);
 	}
 	bool qfileConfigEnable(int id) {
 		return(idIsNotCharts(id) ? qfileConfig.enable :
@@ -1060,7 +1069,7 @@ private:
 		       idIsChartsRemote(id) ? qfileConfig.enable_charts_remote : false);
 	}
 private:
-	map<int, MySqlStore_process*> processes;
+	map<int, map<int, MySqlStore_process*> > processes;
 	string host;
 	string user;
 	string password;
@@ -1169,6 +1178,8 @@ struct sExistsColumns {
 	bool cdr_rtp_flags;
 	bool cdr_rtp_duration;
 	bool cdr_rtcp_fraclost_pktcount;
+	bool cdr_rtcp_rtd;
+	bool cdr_rtcp_rtd_w;
 	bool cdr_dtmf_calldate;
 	bool cdr_dtmf_type;
 	bool cdr_sipresp_calldate;
@@ -1209,6 +1220,7 @@ struct sExistsColumns {
 	bool sip_msg_request_time_ms;
 	bool sip_msg_response_time_ms;
 	bool sip_msg_vlan;
+	bool ssl_sessions_id_sensor_is_unsigned;
 };
 
 struct sTableCalldateMsIndik {
