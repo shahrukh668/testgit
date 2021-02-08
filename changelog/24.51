@@ -1,0 +1,3 @@
+disable authorization for API pcap's download when DISABLE_API_AUTH is enabled [VG-2235]
+new capture rules for sip options/subscribe/notify (sniffer >= 27.4) [VS-919]
+apply hold time to cdr summary (reports & dashboards) and cdr report with custom columns (reports & alerts) [VG-2240]

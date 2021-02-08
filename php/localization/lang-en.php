@@ -396,6 +396,9 @@ Try setting in php.ini:
 		'fsipcallerport' => 'caller SIP Port',
 		'fsipcalledport' => 'called SIP Port',
 		'fsipcallerdport_type_set' => 'caller od called SIP Port',
+		'fsipcallerip_encaps' => 'caller SIP IP encapsulation',
+		'fsipcalledip_encaps' => 'called SIP IP encapsulation',
+		'fsipcallerdip_encaps_type_set' => 'caller od called SIP IP encapsulation',
 		'fcodec' => 'codec',
 		'fexclude_codec' => 'exclude codec',
 		'fconnected' => 'connected (connect duration is not NULL)',
@@ -841,7 +844,8 @@ Try setting in php.ini:
 		'silence_end_perc99_all' => 'LS %99',
 		'clipping_all' => 'CF',
 		'clipping_perc95_all' => 'CF %95',
-		'clipping_perc99_all' => 'CF %99'
+		'clipping_perc99_all' => 'CF %99',
+		'hold_time' => 'hold time'
 	),
 	'alerts' => array(
 		'alert' => 'alert',

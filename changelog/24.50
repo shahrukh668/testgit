@@ -1,0 +1,8 @@
+fix pie charts isse (legends = unknown) [VG-2237]
+include t38 rows in sip history when merging cdrs [VG-2234]
+fix interval charts (jitter / delay) [VG-2239]
+add auditing for some API calls [VG-2200]
+monitor active SQL requests and terminate them (typically if user tries to do some expensive SQL queries and will close browser) 
+add support for hour partitions 
+add new API call listCdrIds and adjust getVoipCalls call [VG-2235]
+added support for GRE IP header in database (requires sniffer >= 27.3) [VS-1120]

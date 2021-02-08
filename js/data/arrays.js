@@ -2054,7 +2054,12 @@ function setArrays() {
 		'sip_response_pie_chart',
 		'top_ip_address_chart',
 		'report_problems',
-		'asr_acd_mos_by_sip_ip_grid',
+		'asr_acd_mos_by_sip_ip_grid'
+	];
+	if(window.existsCdrSipcallerIP_encaps) {
+		arDashboardTypePanels.push('asr_acd_mos_by_sip_ip_encaps_grid');
+	}
+	arDashboardTypePanels.push(
 		'asr_acd_mos_by_rtp_ip_grid',
 		'asr_acd_mos_by_callerd_grid',
 		'asr_acd_mos_by_ua_grid',
@@ -2074,7 +2079,7 @@ function setArrays() {
 		'sniffer_rrd',
 		'active_calls_map',
 		'active_calls_chart'
-	];
+	);
 	if(!user_can_3d_rtp_charts()) {
 		var i = arDashboardTypePanels.indexOf('chart_3d_rtp_stat');
 		if(i >= 0) {
@@ -2128,10 +2133,6 @@ function setArrays() {
 		'mos_perc95_all',
 		'mos_perc99_all'
 	);
-	arTypeIp = [
-                [ 0, 'static', arLang.type_ip_static ],
-                [ 1, 'dhcp', arLang.type_ip_dhcp ]
-        ];
 	if(existsMosXrCdr && window.rtpQualityUse) arColumnsCDRstat.push(
 		'mos_xr_avg_all',
 		'mos_xr_avg_perc95_all',
@@ -2232,6 +2233,8 @@ function setArrays() {
 		'price_operator',
 		'price_customer',
 		'price_difference');
+	if(window.existsCdrNextHold) arColumnsCDRstat.push(
+		'hold_time'); 
 	if(window.disablePercentiles) {
 		var arColumnsCDRstat_new = [];
 		for(var i = 0; i < arColumnsCDRstat.length; i++) {
@@ -2294,6 +2297,10 @@ function setArrays() {
 		[ 'rejected', arLang.LarSs7State_rejected ],
 		[ 'canceled', arLang.LarSs7State_canceled ]
 	];
+	arTypeIp = [
+                [ 0, 'static', arLang.type_ip_static ],
+                [ 1, 'dhcp', arLang.type_ip_dhcp ]
+        ];
 }
 
 function fillDataArrays() {
