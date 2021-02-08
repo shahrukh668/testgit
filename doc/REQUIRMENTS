@@ -1,5 +1,0 @@
-
-apache2 
--------
-flash wav player needs RewriteRule directive which is written in .htaccess file in php directory of voipmonitor. You have to allow it by "AllowOverride FileInfo" directive in apache2 configuration. 
-

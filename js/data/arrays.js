@@ -191,6 +191,14 @@ function setArrays() {
 		[346, 'PAYLOAD_VXOPUS16',	'VXOPUS16'],
 		[347, 'PAYLOAD_VXOPUS24',	'VXOPUS24'],
 		[348, 'PAYLOAD_VXOPUS48',	'VXOPUS48'],
+		[351, 'PAYLOAD_G72616',		'G726-16'],
+		[352, 'PAYLOAD_G72624',		'G726-24'],
+		[353, 'PAYLOAD_G72632',		'G726-32'],
+		[354, 'PAYLOAD_G72640',		'G726-40'],
+		[355, 'PAYLOAD_AAL2_G72616',	'AAL2-G726-16'],
+		[356, 'PAYLOAD_AAL2_G72624',	'AAL2-G726-24'],
+		[357, 'PAYLOAD_AAL2_G72632',	'AAL2-G726-32'],
+		[358, 'PAYLOAD_AAL2_G72640',	'AAL2-G726-40'],
 		[1000, 'PAYLOAD_T38',		'FAX T.38'],
 		[1001, 'PAYLOAD_T30',		'FAX T.30'],
 		[100, 'PAYLOAD_CLEARMODE', 	'CLEARMODE']
@@ -246,7 +254,12 @@ function setArrays() {
 		[_AuditActivity_login, arLang.LauditActivity_login],
 		[_AuditActivity_logout, arLang.LauditActivity_logout],
 		[_AuditActivity_liveSnifferStart, arLang.LauditActivity_liveSnifferStart],
-		[_AuditActivity_liveSnifferStop, arLang.LauditActivity_liveSnifferStop]
+		[_AuditActivity_liveSnifferStop, arLang.LauditActivity_liveSnifferStop],
+		[_AuditActivity_getVoiceRecording, arLang.LauditActivity_getVoiceRecording],
+		[_AuditActivity_getPCAP, arLang.LauditActivity_getPCAP],
+		[_AuditActivity_handleActiveCall, arLang.LauditActivity_handleActiveCall],
+		[_AuditActivity_getVoipCalls, arLang.LauditActivity_getVoipCalls],
+		[_AuditActivity_getShareURL, arLang.LauditActivity_getShareURL]
 	];
 	arRegState = [
 		[_RegState_OK, arLang.LregState_OK, '#5FC40C'],
@@ -318,6 +331,7 @@ function setArrays() {
 		[_EmailDailyReportType_ProxyDegradMOS, arLang.LemailDailyReportType_ProxyDegradMOS],
 		[_EmailDailyReportType_CdrSummary, arLang.LemailDailyReportType_CdrSummary],
 		[_EmailDailyReportType_ConcurrentCallStat, arLang.LemailDailyReportType_ConcurrentCallStat],
+		[_EmailDailyReportType_CPS, arLang.LemailDailyReportType_CPS],
 		[_EmailDailyReportType_Chart, arLang.LemailDailyReportType_Chart],
 		[_EmailDailyReportType_ConcurrentCallStat_license_chart, arLang.LemailDailyReportType_ConcurrentCallStat_license_chart]
 	];
@@ -473,6 +487,7 @@ function setArrays() {
 		[ 'TCH_packet_lost',			arLang.LtypeChart_TCH_packet_lost ],
 		[ 'TCH_jitter_intervals',		arLang.LtypeChart_TCH_jitter_intervals ],
 		[ 'TCH_jitter',				arLang.LtypeChart_TCH_jitter ],
+		[ 'TCH_delay_intervals',		arLang.LtypeChart_TCH_delay_avg_intervals ],
 		[ 'TCH_delay',				arLang.LtypeChart_TCH_delay_avg ],
 		[ 'TCH_rtcp_avgjitter_intervals',	arLang.LtypeChart_TCH_rtcp_avgjitter_intervals ],
 		[ 'TCH_rtcp_avgjitter',			arLang.LtypeChart_TCH_rtcp_avgjitter ],
@@ -744,7 +759,14 @@ function setArrays() {
 		[ 'TCHS_jitter_min',			'',						arLang.LsubtypeSeries_TCHS_min,		'TCH_jitter',			'jitter_min' ],
 		[ 'TCHS_jitter_perc95',			'',						arLang.LsubtypeSeries_TCHS_perc95,	'TCH_jitter',			'jitter_perc95' ],
 		[ 'TCHS_jitter_perc99',			'',						arLang.LsubtypeSeries_TCHS_perc99,	'TCH_jitter',			'jitter_perc99' ],
-		[ 'TCHS_delay_max',			arLang.LtypeSeries_TCHS_delay_avg,		arLang.LsubtypeSeries_TCHS_max,		'TCH_delay',			'delay_max' ],
+		[ 'TCHS_delay_intervals',		arLang.LtypeSeries_TCHS_delay_avg,		arLang.LsubtypeSeries_TCHS_intervals,	'TCH_delay',			'sm_delay_intervals', 'multiSeries', null,
+		  [ [ 20,	'#00C000' ], // zelana
+		    [ 50,	'#AAC000' ], // zelano-oranzova
+		    [ 100,	'#E9B300' ], // oranzova
+		    [ 200,	'#E98400' ], // oranzovo cervena
+		    [ null,	'#E90000' ] ] // cervena
+		],
+		[ 'TCHS_delay_max',			'',						arLang.LsubtypeSeries_TCHS_max,		'TCH_delay',			'delay_max' ],
 		[ 'TCHS_delay_avg',			'',						arLang.LsubtypeSeries_TCHS_avg,		'TCH_delay',			'delay_avg' ],
 		[ 'TCHS_delay_min',			'',						arLang.LsubtypeSeries_TCHS_min,		'TCH_delay',			'delay_min' ],
 		[ 'TCHS_delay_perc95',			'',						arLang.LsubtypeSeries_TCHS_perc95,	'TCH_delay',			'delay_perc95' ],
@@ -1093,6 +1115,7 @@ function setArrays() {
 		[ 'TCHS_jitter_min',			{ unit: 'jitter' } ],
 		[ 'TCHS_jitter_perc95',			{ unit: 'jitter' } ],
 		[ 'TCHS_jitter_perc99',			{ unit: 'jitter' } ],
+		[ 'TCHS_delay_intervals',		{ unit: 'count' } ],
 		[ 'TCHS_delay_max',			{ unit: 'delay' } ],
 		[ 'TCHS_delay_avg',			{ unit: 'delay' } ],
 		[ 'TCHS_delay_min',			{ unit: 'delay' } ],
@@ -1545,6 +1568,14 @@ function setArrays() {
 			}],
 			theme: 'CdrChartLine',
 			axisTitleLeft: 'jitter - avg, perc 95, perc 99'
+		},
+		TCH_delay_intervals: {
+			series: [{
+				series: 'TCHS_delay_intervals',
+				baseType: 'area'
+			}],
+			theme: 'CdrChartArea',
+			axisTitleLeft: 'x̄ PDV - count'
 		},
 		TCH_delay: {
 			series: [{
@@ -2022,6 +2053,7 @@ function setArrays() {
 		'grid_rtp_stat',
 		'sip_response_pie_chart',
 		'top_ip_address_chart',
+		'report_problems',
 		'asr_acd_mos_by_sip_ip_grid',
 		'asr_acd_mos_by_rtp_ip_grid',
 		'asr_acd_mos_by_callerd_grid',

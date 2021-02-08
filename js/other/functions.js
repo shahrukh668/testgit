@@ -1005,7 +1005,10 @@ function timeMinuteCeil(inputTime) {
 			(inputTime.getTime() % (60*1000) ? 60*1000 : 0)));
 }
 
-function cloneObject(object, dest, maxDepth) {
+function cloneObject(object, dest, maxDepth, currentDepth) {
+	if(currentDepth > 100) {
+		return(undefined);
+	}
 	if(maxDepth === 0) {
 		return(undefined);
 	}
@@ -1016,7 +1019,7 @@ function cloneObject(object, dest, maxDepth) {
 				       object[item] :
 				      Ext.isFunction(object[item]) ?
 				       object[item] :
-				       cloneObject(object[item], null, maxDepth ? maxDepth - 1 : undefined);
+				       cloneObject(object[item], null, maxDepth ? maxDepth - 1 : undefined, (currentDepth || 0) + 1);
 		}
 		return(clone);
 	} else {
@@ -1128,6 +1131,13 @@ function getTimeInterval(typeTimeInterval, params) {
 		params.intervalOffset = 0;
 	}
 	switch(typeTimeInterval) {
+	case 'last_15m':
+		dateFrom = new Date(params.actTime.getTime() - 15*60*1000);
+		if(params.forChart) {
+			dateTo = params.actTime;
+			applicableIntervalOffset = true;
+		}
+		break;
 	case 'last_hour':
 	case 'last_60m':
 		dateFrom = new Date(params.actTime.getTime() - 60*60*1000);
@@ -1278,7 +1288,7 @@ function getTimeInterval(typeTimeInterval, params) {
 	}]);
 }
 
-function getStdMenuTimeFrom(scope, handler, menu) {
+function getStdMenuTimeFrom(scope, handler, menu, config) {
 	if(!menu) {
 		menu = [];
 		menu.push({
@@ -1316,13 +1326,129 @@ function getStdMenuTimeFrom(scope, handler, menu) {
 			_typeTimeFrom: 'last_month'
 		});
 	}
-	return({
+	if(config && config.last_days_minutes) {
+		menu.push({ 
+			xtype: 'menuseparator'
+		});
+		function evLastDays(field) {
+			if(config.evLast) {
+				var days = field.getValue();
+				var minutes = Ext.getCmp(field.getEl().up('.x-menu-item-cmp').id).findC('_id', 'last_minutes').getValue();
+				config.evLast.call(scope, days, minutes);
+			}
+		}
+		function evLastMinutes(field) {
+			if(config.evLast) {
+				var days = Ext.getCmp(field.getEl().up('.x-menu-item-cmp').id).findC('_id', 'last_days').getValue();
+				var minutes = field.getValue();
+				config.evLast.call(scope, days, minutes);
+			}
+		}
+		menu.push({
+			xtype: 'container',
+			layout: 'hbox',
+			items: [
+				{xtype: 'displayfield', value: 'Last ', fieldCls: 'x-menu-item-text'},
+				{xtype: 'container',
+				 layout: 'vbox',
+				 items: [
+					{xtype: 'container',
+					 layout: 'hbox',
+					 items: [
+						{xtype: 'numberfield', width: 50,
+						 _id: 'last_days',
+						 minValue: 0, maxValue: 365,
+						 fieldStyle: {'text-align': 'right'},
+						 listeners: {
+							spindown: function(field) {
+								var value = field.getValue();
+								if(value == 1 || value === null) {
+									Ext.defer(function() {
+											field.setValue(null);
+										}, 1);
+								}
+							},
+							select: function(field) {
+								if(!field._disableChangeEvent) {
+									evLastDays(field);
+								}
+							},
+							change: function(field) {
+								if(!field._disableChangeEvent) {
+									evLastDays(field);
+								}
+							},
+							scope: this
+						 },
+						 tooltip: lang.days},
+						{xtype: 'displayfield', value: lang.days, fieldCls: 'x-menu-item-text'}
+					 ],
+					 style: {
+						marginBottom: 1
+					 }},
+					{xtype: 'container',
+					 layout: 'hbox',
+					 items: [
+						{xtype: 'numberfield', width: 50,
+						 _id: 'last_minutes',
+						 minValue: 0, maxValue: 24*60,
+						 fieldStyle: {'text-align': 'right'},
+						 listeners: {
+							spindown: function(field) {
+								var value = field.getValue();
+								if(value == 1 || value === null) {
+									Ext.defer(function() {
+											field.setValue(null);
+										}, 1);
+								}
+							},
+							select: function(field) {
+								if(!field._disableChangeEvent) {
+									evLastMinutes(field);
+								}
+							},
+							change: function(field) {
+								if(!field._disableChangeEvent) {
+									evLastMinutes(field);
+								}
+							},
+							scope: this
+						 },
+						 tooltip: lang.minutes},
+						{xtype: 'displayfield', value: lang.minutes, fieldCls: 'x-menu-item-text'}
+					 ]}
+				]}
+			]
+		});
+	}
+	var rsltMenu = {
 		items: menu,
 		defaults: {
 			scope: scope,
 			handler: handler
 		}
-	});
+	};
+	if(config && config.last_days_minutes && config.getInitLastValues) {
+		rsltMenu.listeners = {
+			beforeshow: function(menu) {
+				var dm = config.getInitLastValues.call(scope);
+				var lastDaysField = menu.findC('_id', 'last_days');
+				if(lastDaysField) {
+					lastDaysField._disableChangeEvent = true;
+					lastDaysField.setValue(dm.days || '');
+					delete lastDaysField._disableChangeEvent;
+				}
+				var lastMinutesField = menu.findC('_id', 'last_minutes');
+				if(lastMinutesField) {
+					lastMinutesField._disableChangeEvent = true;
+					lastMinutesField.setValue(dm.minutes || '');
+					delete lastMinutesField._disableChangeEvent;
+				}
+			},
+			scope: this
+		}
+	}
+	return(rsltMenu);
 }
 
 function getScrollerWidth() {
@@ -1638,7 +1764,7 @@ function ajaxSafeRequest(baseParams, reloginTask) {
 			baseParams.params.timeout = baseParams.timeout / 1000;
 		}
 		if(baseParams.timestampId) {
-			var timestampId = baseParams.timestampId;
+			timestampId = baseParams.timestampId;
 			baseParams.params.timestampId = baseParams.timestampId;
 		}
 		if(isEnableClientTimezone()) {
@@ -1646,12 +1772,30 @@ function ajaxSafeRequest(baseParams, reloginTask) {
 			baseParams.params.clientOsTimezone = getClientOsTimezone();
 		}
 	}
+	if(baseParams && baseParams.check_active_request) {
+		Ext.applyIf(baseParams.check_active_request, {
+			timestamp_id: timestampId,
+			interval_ms: 5000
+		});
+		if(baseParams.check_active_request.element && baseParams.check_active_request.element.id) {
+			baseParams.check_active_request.element_id = baseParams.check_active_request.element.id;
+		}
+	}
 	var ajaxRequestParams = Ext.apply({}, baseParams);
 	Ext.applyIf(ajaxRequestParams, {
 		method: 'POST'
 	});
+	if(baseParams && baseParams.check_active_request && 
+	   baseParams.check_active_request.element && baseParams.check_active_request.element.startActiveRequest &&
+	   baseParams.check_active_request.timestamp_id) {
+		baseParams.params.check_active_request = true;
+	}
 	Ext.apply(ajaxRequestParams, {
 		success: function(response, options) {
+			if(baseParams && baseParams.check_active_request && 
+			   baseParams.check_active_request.element && baseParams.check_active_request.timestamp_id) {
+				baseParams.check_active_request.element.killActiveRequest(baseParams.check_active_request);
+			}
 			endProcess = true;
 			if(baseParams.maskEl && mask) {
 				baseParams.maskEl.unmask();
@@ -1687,6 +1831,10 @@ function ajaxSafeRequest(baseParams, reloginTask) {
 			}
 		},
 		failure: function(response) {
+			if(baseParams && baseParams.check_active_request && 
+			   baseParams.check_active_request.element && baseParams.check_active_request.timestamp_id) {
+				baseParams.check_active_request.element.killActiveRequest(baseParams.check_active_request);
+			}
 			if(baseParams && baseParams.params &&
 			   baseParams.params.task == 'getDebugLogForLoadId') {
 				return;
@@ -1714,6 +1862,12 @@ function ajaxSafeRequest(baseParams, reloginTask) {
 		timeout: Ext.Ajax.timeout
 	});
 	var request = Ext.Ajax.request(ajaxRequestParams);
+	if(baseParams && baseParams.check_active_request && 
+	   baseParams.check_active_request.element && baseParams.check_active_request.element.startActiveRequest &&
+	   baseParams.check_active_request.timestamp_id) {
+		baseParams.check_active_request.request = request;
+		baseParams.check_active_request.element.startActiveRequest(baseParams.check_active_request);
+	}
 	if(timestampId) {
 		request.timestampId = timestampId;
 	}
@@ -2939,4 +3093,16 @@ function gDisplayButton() {
 
 function gOnFailure (error) {
 	console.log(error);
+}
+
+function testSleep(sleep) {
+	ajaxSafeRequest({
+		url: 'php/model/utilities.php',
+		params: {
+			task: 'testSleep',
+			params: Ext.encode({
+				sleep: sleep
+			})
+		}
+	});
 }

@@ -366,7 +366,8 @@ Ext.define('CDR.Chart.ChartPanel', {
 						       config.fceFailureParam, error, response);
 			} : undefined,
 			scope: this,
-			maskCmp: this._disableMaskOnLoad ? undefined : this.chartsOwner || this
+			maskCmp: this._disableMaskOnLoad ? undefined : this.chartsOwner || this,
+			parentElement: config && config.parentElement || this.chartsOwner || this
 		});
 	},
 	createChart: function(chartConfig, store, newChart) {
@@ -557,15 +558,17 @@ Ext.define('CDR.Chart.ChartPanel', {
 	newTrackerTicket: function() {
 		this.chart.newTrackerTicket();
 	},
-	reloadChart: function(enableInvalidData) {
-		this.chart.reloadChart(null, enableInvalidData);
+	reloadChart: function(enableInvalidData, config) {
+		this.chart.reloadChart(null, enableInvalidData, 
+				       config && config.parentElement || this.chartsOwner || this);
 	},
-	reloadChartWithNewChartConfig: function(newChartConfig, enableInvalidData, copySeriesDataFromStore) {
+	reloadChartWithNewChartConfig: function(newChartConfig, enableInvalidData, copySeriesDataFromStore, config) {
 		if(newChartConfig && copySeriesDataFromStore && 
 		   this.chart.store && this.chart.store.chartConfig && this.chart.store.chartConfig.series) {
 			newChartConfig.series = this.chart.store.chartConfig.series;
 		}
-		this.chart.reloadChart(newChartConfig, enableInvalidData);
+		this.chart.reloadChart(newChartConfig, enableInvalidData, 
+				       config && config.parentElement || this.chartsOwner || this);
 	},
 	onReloadChart: function() {
 		this.chart.setVisible(this.chart.store.validData);
@@ -976,6 +979,10 @@ Ext.define('CDR.Chart.Chart', {
 					var varName2 = chartConfig.series[i].varName2;
 					if(chartData.multiSeriesItems[varName2]) {
 						for(var j = 0; j < chartData.multiSeriesItems[varName2].length; j++) {
+							if(chartData.multiSeriesColors && chartData.multiSeriesColors[varName2] &&
+							   chartData.multiSeriesColors[varName2][chartData.multiSeriesItems[varName2][j]] == 'hide') {
+								continue;
+							}
 							yFields.push('y_' + varName2 + '_' + j + (chartConfig.series[i].percent ? '_perc' : ''));
 							var title = chartData.multiSeriesItems[varName2][j];
 							if(chartConfig.series[0].multiSeriesIntervals) {
@@ -1579,7 +1586,7 @@ Ext.define('CDR.Chart.Chart', {
 			return(roundNumber(value, config.decTip) + (config.unit ? ' ' + config.unit : ''));
 		}
 	},
-	reloadChart: function(chartConfig, enableInvalidData) {
+	reloadChart: function(chartConfig, enableInvalidData, parentElement) {
 		var me = this;
 		chartConfig = chartConfig || this.store.chartConfig;
 		if(chartConfig && !chartConfig._typeChart) {
@@ -1647,7 +1654,8 @@ Ext.define('CDR.Chart.Chart', {
 				} : undefined,
 				chartConfig: chartConfig,
 				chart: this,
-				maskCmp: this._chartPanel && this._chartPanel._disableMaskOnReload ? undefined : this._chartPanel
+				maskCmp: this._chartPanel && this._chartPanel._disableMaskOnReload ? undefined : this._chartPanel,
+				parentElement: parentElement
 			},
 			enableInvalidData);
 	},
@@ -2273,14 +2281,22 @@ Ext.define('CDR.Chart.Store', {
 	},
 	loadChartData: function(configLoad, enableInvalidData) {
 		var enableMask = false;
-		var timestampId = (new Date).getTime();
+		var timestampId = (new Date).getTime() + (user_id() ? '_' + user_id() : '') + '_chart' + 
+				  (configLoad.parentElement ? '_' + configLoad.parentElement.id :
+				  (configLoad.maskCmp ? '_' + configLoad.maskCmp.id : ''));
 		if(configLoad.maskCmp && configLoad.maskCmp.getEl() && configLoad.maskCmp.getEl().mask) {
-			beginLoadMaskWithStopButton_ajax(configLoad.maskCmp, 'loadChartData_loadMask' + '_' + configLoad.maskCmp.id);
+			beginLoadMaskWithStopButton_ajax(configLoad.maskCmp, 'loadChartData_loadMask' + '_' + configLoad.maskCmp.id, null, timestampId);
 			timestampId = configLoad.maskCmp._loadMask_timestampId;
 			enableMask = true;
 		}
 		var chartConfig = configLoad.chartConfig || this.chartConfig;
 		this._disableRedraw = true;
+		var check_active_request = null;
+		if(configLoad.parentElement) {
+			check_active_request = {
+				element: configLoad.parentElement
+			};
+		}
 		var request = ajaxSafeRequest({
 			scope: this,
 			url: configLoad && configLoad.url || 'php/reports/charts.php',
@@ -2361,7 +2377,8 @@ Ext.define('CDR.Chart.Store', {
 				this.removeAll();
 			},
 			timeout: 60*60*1000,
-			timestampId: timestampId
+			timestampId: timestampId,
+			check_active_request: check_active_request
 		});
 		if(enableMask) {
 			startLoadMaskWithStopButton_ajax(configLoad.maskCmp, request);
@@ -2632,6 +2649,9 @@ Ext.define('CDR.Chart.IntervalDetail.Grid.Panel', {
 			pressed: config.sortByColumn == 'sum'
 		});
 		for(var i = 0; i < config.data.types.length; i++) {
+			if(config.data.colors[config.data.types[i]] == 'hide') {
+				continue;
+			}
 			tbar.push({
 				text: '<div style="float: left; width: 12; height: 12; background-color: ' + config.data.colors[config.data.types[i]] + '; margin-right: 5; margin-top: 1;"></div>' + 
 					  config.data.types[i],
@@ -2690,7 +2710,7 @@ Ext.define('CDR.Chart.IntervalDetail.Grid.Panel', {
 				property : 'ip',
 				direction: 'ASC'
 			});
-			grid.reconfigure(store, me.getGridColumns(me.sortByColumn, me.data, widthSrcDst));
+			grid.reconfigure(store, me.getGridColumns(me.sortByColumn, me.config.data, widthSrcDst));
 		}
 	},
 	getGridColumns: function(sortByColumn, data, widthSrcDst) {
@@ -3872,7 +3892,8 @@ Ext.define('CDR.Chart.ConfigForm', {
 						var chartConfig = cloneChartConfig(defChartType, this.filtersFromParent);
 						this.completeSeries(chartConfig.series);
 						this.setSeriesFields(chartConfig.series);
-					}
+					} else {
+					}	this.setContextSeriesFields();
 					this.loadTypeCharts();
 					this.enablerSaveDeleteChartConfig();
 					if(!this.dailyReportConfig && !this.cdrChartConfig && !this.dashboardConfig) {
@@ -4080,7 +4101,8 @@ Ext.define('CDR.Chart.ConfigForm', {
 							}
 						}
 					},
-					allowBlank: config.dashboardConfig && indexSeries == 0 ? false : true
+					allowBlank: (config.dashboardConfig || config.needFillFirstSeries) && 
+						    indexSeries == 0 ? false : true
 				};
 				break;
 			case 'series_b':
@@ -5570,7 +5592,7 @@ Ext.define('CDR.Chart.ConfigForm', {
 			);
 			columns.push(
 				{dataIndex: 'descr', flex: 1,
-				 renderer: function renderColor(value, metaData, record, rowIndex, colIndex, store, view) {
+				 renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
 					return(Ext.isString(value) && value.match('/') ? value.split('/')[1] : value);
 				 }}
 			);
@@ -5583,7 +5605,7 @@ Ext.define('CDR.Chart.ConfigForm', {
 			);
 			columns.push(
 				{dataIndex: 'interval_limit', flex: 1,
-				 renderer: function renderColor(value, metaData, record, rowIndex, colIndex, store, view) {
+				 renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
 					return(record.data.interval_last ? findLangS(subsystem, 'text', 'interval_last') : value);
 				 }}
 			);
@@ -5594,7 +5616,7 @@ Ext.define('CDR.Chart.ConfigForm', {
 		}
 		columns.push(
 			{dataIndex: 'color', flex: 1,
-			 renderer: function renderColor(value, metaData, record, rowIndex, colIndex, store, view) {
+			 renderer: function(value, metaData, record, rowIndex, colIndex, store, view) {
 				return(renderStringStyle(value, {
 					color: value || 'black'
 				}));

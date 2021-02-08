@@ -181,6 +181,11 @@ $langEn = Array(
 		'network' => 'Network',
 		'user_settings' => 'User settings',
 		'logout' => 'Logout',
+		'report_call_problems' => 'Call problems',
+		'report_problems_from_own_clients' => 'From own clients',
+		'report_problems_from_own_servers' => 'From own servers',
+		'report_problems_from_public_trunks' => 'From public trunks',
+		'report_problems_settings' => 'Settings'
 	),
 
 	'validation' => Array(
@@ -393,6 +398,7 @@ Try setting in php.ini:
 		'fsipcallerdport_type_set' => 'caller od called SIP Port',
 		'fcodec' => 'codec',
 		'fexclude_codec' => 'exclude codec',
+		'fconnected' => 'connected (connect duration is not NULL)',
 		'fconnect_durationgtt' => 'connect duration (>)',
 		'fconnect_durationgt' => 'connect duration (>=)',
 		'fconnect_durationlt' => 'connect duration (<)',
@@ -643,6 +649,7 @@ Try setting in php.ini:
 		'ENABLE_SQL_CUSTOMER_PREFIX_LOOKUP' => 'Enable database number lookup',
 		'PCAP_DEDUPLICATION' => 'Pcap deduplication before download',
 		'GET_PCAP_SELECT_TIMEOUT' => 'Timeout of select command to get pcap',
+		'DISABLE_API_AUTH' => 'Disable authorization for API usage',
 
 		'NORTPFIRSTLEG' => 'Disable rtpfirstleg param',
 		'WAV_API_KEY' => 'WAV download key',
@@ -698,6 +705,7 @@ Try setting in php.ini:
 		'AUTOAUDIT_TEMPLATE_BATCH_DOWNLOAD' => 'Auto-audit template for batch download',
 		'AUTOAUDIT_TEMPLATE_SET_FILTER_CDR' => 'Auto-audit template for set cdr filter',
 		'SHOW_AVERAGE_PACKET_LOSS_IN_CDR_GRID' => 'Show average packet loss in cdr grid',
+		'MAXIMUM_PARALLEL_TASKS' => 'Maximum parallel tasks',
 		'MAXIMUM_PARALLEL_TASKS_IN_MERGE_PCAPS' => 'Maximum parallel tasks in merge pcaps',
 		'BAD_LOGIN_LOG' => 'Bad login log',
 		'EULA_AGREE' => 'EULA Agree',
@@ -769,6 +777,7 @@ Try setting in php.ini:
 	'api' => array(
 		'unhandledRequest' => 'unhandled request',
 		'getVoipCalls_missingParameters' => 'startTime, endTime, caller must be set',
+		'listCdrIds_missingParameters' => 'offset and size parameters must be set',
 		'getPCAP_missingParameters' => 'cdrId or callId or custom header must be set',
 		'getVoiceRecording_missingParameters' => 'cdrId or callId or custom header must be set',
 		'getShareURL_missingParameters' => 'cdrId or callId or custom header must be set',
@@ -1047,6 +1056,7 @@ Try setting in php.ini:
 			'location_src' => 'location src',
 			'location_dst' => 'location dst',
 			'concurrent calls' => 'concurrent calls',
+			'CPS' => 'CPS',
 			'number' => 'number',
 			'rtp stream' => 'RTP stream',
 			'old IP' => 'old IP',

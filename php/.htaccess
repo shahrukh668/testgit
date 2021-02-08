@@ -3,4 +3,8 @@ RewriteEngine On
 RewriteRule   (^.*\.wav$)   pcap2wav.php?id=$1&action=wav
 RewriteRule   (^.*\.raw$)   vp2raw.php?id=$1
 RewriteRule   (^.*\.sln$)   vp2raw.php?id=$1
+# an example of the rewrite rules for another type of 'routing'
+#RewriteRule   "^/calls/([0-9]+)" '/php/api.php?task=getVoipCalls&simpleOutput=1&params={"cdrId": "$1"}' [L]
+#RewriteRule   "^/audio/([0-9]+)" '/php/api.php?task=getVoiceRecording&params={"cdrId": "$1"}'   [L]
+#RewriteRule   "^/calls"         '/php/api.php?task=listCdrIds&simpleOutput=1' [QSA]
 </IfModule>

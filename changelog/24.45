@@ -1,0 +1,5 @@
+audio decode support for G726 and AAL2-G726 all variants [VS-1128]
+Display database group's id in group list (User & Audit menu). It is useful in custom login scripts.
+connect to remote sniffer when VPMANAGERHOST is set to not localhost ip (fixes pcap/audio download on some configurations) [VG-2221]
+updated hwid binary (licenses works in docker now) 
+updated vm binary to the latest 

@@ -44,9 +44,13 @@ _EmailDailyReportType_CdrSummary
 				= 14;
 _EmailDailyReportType_ConcurrentCallStat
 				= 17;
+_EmailDailyReportType_CPS	= 50;
 _EmailDailyReportType_ConcurrentCallStat_license_chart
 				= 18;
 _EmailDailyReportType_Chart	= 11;
+
+_cc_aggreg_type_max 		= 0;
+_cc_aggreg_type_avg 		= 1;
 
 _cc_interval_minute             = 1;
 _cc_interval_hour               = 2;
@@ -106,6 +110,11 @@ _AuditActivity_login   		= 91;
 _AuditActivity_logout  		= 92;
 _AuditActivity_liveSnifferStart	= 93;
 _AuditActivity_liveSnifferStop	= 94;
+_AuditActivity_getVoiceRecording= 95;
+_AuditActivity_getPCAP		= 96;
+_AuditActivity_handleActiveCall	= 97;
+_AuditActivity_getVoipCalls	= 98;
+_AuditActivity_getShareURL	= 99;
 
 _cdrFieldsCaller		= 'caller';
 _cdrFieldsCalled		= 'called';

@@ -50,6 +50,102 @@ Ext.override(Ext.Component, {
 			Ext.QuickTips.unregister(this.helpInField || !this.labelEl || this.xtype && (this.xtype.match('displayfield') || this.xtype.match('checkbox')) ? this.el : this.labelEl);
 		}
 		this.callOverridden();
+	},
+	getAbsolutePosition: function() {
+		if(this.getEl() && this.getEl().dom) {
+			return(getAbsolutePosition(this.getEl().dom));
+		} else {
+			var position = this.getPosition();
+			var item = this;
+			while(item.ownerCt) {
+				item = item.ownerCt;
+				var nextPosition = item.getPosition();
+				for(var i = 0; i < 2; i++) {
+					position[i] += nextPosition[i];
+				}
+			}
+			return(position);
+		}
+	},
+	startActiveRequest: function(config) {
+		if(this.activeRequestKill && this.activeRequestKill[config.timestamp_id]) {
+			delete this.activeRequestKill[config.timestamp_id];
+		}
+		Ext.defer(function() {
+				config.ignoreExistElement = config.element && !config.element.getEl();
+				this.doActiveRequest(config);
+			}, 1000, this);
+	},
+	killActiveRequest: function(config) {
+		if(!this.activeRequestKill) {
+			this.activeRequestKill = {};
+		}
+		this.activeRequestKill[config.timestamp_id] = true;
+		if(this.activeRequestTimeoutId && this.activeRequestTimeoutId[config.timestamp_id]) {
+			clearTimeout(this.activeRequestTimeoutId[config.timestamp_id]);
+			delete this.activeRequestTimeoutId[config.timestamp_id];
+		}
+		ajaxSafeRequest({
+			scope: this,
+			url: 'php/model/utilities.php',
+			params: {
+				task: 'setActiveRequest',
+				params: Ext.encode({
+					kill: true,
+					timestamp_id: config.timestamp_id
+				})
+			},
+			success: function() {
+				if(this.activeRequestKill && this.activeRequestKill[config.timestamp_id]) {
+					delete this.activeRequestKill[config.timestamp_id];
+				}
+			},
+			errorFailure2: function() {
+			}
+		});
+	},
+	doActiveRequest: function(config) {
+		if(!config.element ||
+		   (!config.ignoreExistElement && !config.element.getEl()) ||
+		   (config.request && !config.request.xhr) ||
+		   (config.proxy && config.proxy._request && !config.proxy._request.xhr) ||
+		   (this.activeRequestKill && this.activeRequestKill[config.timestamp_id])) {
+			if(this.activeRequestKill && this.activeRequestKill[config.timestamp_id]) {
+				delete this.activeRequestKill[config.timestamp_id];
+			}
+			return;
+		}
+		ajaxSafeRequest({
+			scope: this,
+			url: 'php/model/utilities.php',
+			params: {
+				task: 'setActiveRequest',
+				params: Ext.encode({
+					timestamp_id: config.timestamp_id,
+					interval_ms: config.interval_ms
+				})
+			},
+			success: function() {
+				if(this.activeRequestKill && this.activeRequestKill[config.timestamp_id]) {
+					delete this.activeRequestKill[config.timestamp_id];
+				} else {
+					this.setActiveRequestTimeout(config);
+				}
+			},
+			errorFailure2: function() {
+				if(this.activeRequestKill && this.activeRequestKill[config.timestamp_id]) {
+					delete this.activeRequestKill[config.timestamp_id];
+				} else {
+					this.setActiveRequestTimeout(config);
+				}
+			}
+		});
+	},
+	setActiveRequestTimeout: function(config) {
+		if(!this.activeRequestTimeoutId) {
+			this.activeRequestTimeoutId = {};
+		}
+		this.activeRequestTimeoutId[config.timestamp_id] = setTimeout(Ext.bind(this.doActiveRequest, this, [config]), config.interval_ms);
 	}
 });
 
@@ -570,25 +666,6 @@ Ext.override(Ext.tip.ToolTip, {
 	}
 });
 
-Ext.override(Ext.Component, {
-	getAbsolutePosition: function() {
-		if(this.getEl() && this.getEl().dom) {
-			return(getAbsolutePosition(this.getEl().dom));
-		} else {
-			var position = this.getPosition();
-			var item = this;
-			while(item.ownerCt) {
-				item = item.ownerCt;
-				var nextPosition = item.getPosition();
-				for(var i = 0; i < 2; i++) {
-					position[i] += nextPosition[i];
-				}
-			}
-			return(position);
-		}
-	}
-});
-
 Ext.override(Ext.data.proxy.Ajax, {
     doRequest: function(operation) {
         var me = this,
@@ -597,7 +674,29 @@ Ext.override(Ext.data.proxy.Ajax, {
             method = me.getMethod(request),
             jsonData, params;
         // ADD begin
-        var timestampId = (new Date).getTime();
+        if(this.check_active_request) {
+            if(this.check_active_request.element && this.check_active_request.element.id) {
+                this.check_active_request.element_id = this.check_active_request.element.id;
+            }
+            Ext.apply(this.check_active_request, {
+                timestamp_id: (new Date).getTime() + (user_id() ? '_' + user_id() : '') + 
+                              (this.check_active_request.timestamp_id_suffix ? 
+                                '_' + this.check_active_request.timestamp_id_suffix : 
+                                '') +
+                              (this.check_active_request.element_id ?
+                                '_' + this.check_active_request.element_id :
+                                '')
+            });
+            Ext.applyIf(this.check_active_request, {
+                interval_ms: 5000,
+                proxy: this
+            });
+            if(this.check_active_request.element && this.check_active_request.element.startActiveRequest) {
+                this.check_active_request.element.startActiveRequest(this.check_active_request);
+            }
+        }
+        var timestampId = (this.check_active_request && this.check_active_request.timestamp_id) ||
+                          ((new Date).getTime() + (user_id() ? '_' + user_id() : ''));
         if(request._params) {
             request._params['timestampId'] = timestampId;
             if(isEnableClientTimezone()) {
@@ -606,6 +705,9 @@ Ext.override(Ext.data.proxy.Ajax, {
             }
             if(request._proxy && request._proxy.timeout) {
                 request._params['timeout'] = request._proxy.timeout / 1000;
+            }
+            if(this.check_active_request) {
+                request._params['check_active_request'] = true;
             }
         }
         // ADD end
@@ -654,6 +756,10 @@ Ext.override(Ext.data.proxy.Ajax, {
 Ext.override(Ext.data.request.Ajax, {
     onComplete : function(request) {
         // MODIFY
+        if(this.proxy && this.proxy.check_active_request &&
+           this.proxy.check_active_request.element && this.proxy.check_active_request.element.killActiveRequest) {
+            this.proxy.check_active_request.element.killActiveRequest(this.proxy.check_active_request);
+        }
         if(this.xhr) {
             var response = null;
             if(this.xhr.response)

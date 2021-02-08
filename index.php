@@ -2224,7 +2224,8 @@ function check_ioncube_php_version(&$err) {
 		case 71:
 		case 72:
 		case 73:
-			$err .= 'For PHP 7.1 .. 7.3: wget "http://www.voipmonitor.org/download-gui?version=latest&major=5&phpver=71&festry"<br>';
+		case 74:
+			$err .= 'For PHP 7.1 .. 7.4: wget "http://www.voipmonitor.org/download-gui?version=latest&major=5&phpver=71&festry"<br>';
 			break;
 		default:
 			$err .= 'Unknown PHP version. Please contact support@voipmonitor.org<br>';
