@@ -1,0 +1,12 @@
+fix convert pcap to fax if user set atypical convertchars in sniffer
+fix export / import from billing rule
+fix merge pcaps without rtp [VG-784]
+add RTCP in capture rules [VS-367]
+propagate filter parameter 'last_days' also in charts  [VG-782]
+fix issue with reload sensor from register tables
+Allow delete old alerts in sent alerts table (GUI -> alerts -> sent alerts) 
+fix trim prefixes in billing
+add user option 'Enable Network map' so network map can be disabled per user [VG-778]
+fix download csv in cdr summary
+fix merge pcaps without rtp if user selects merge 'sip + rtp' [VG-784]
+modify legs by cid in cdr - set default condition between caller and called numbers to AND, add combobox in toolbar to switch to OR if desired [VG-785]

@@ -1,0 +1,5 @@
+New concurrent calls alert based on data from CDR (not realtime) which allows flebible filtering and counting data from all sensors [VG-1153]
+Fix new country grouping glitches 
+Use hash string when generating link for PNG dashboard image to not expose user/pass in URL [VG-51]
+Implement countries for SIP MESSAGE too [VG-319]
+update bin/vm to 18.2

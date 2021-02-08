@@ -1,0 +1,1 @@
+update vm binary which fixes decoding audio where left channel was not always caller

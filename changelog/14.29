@@ -1,0 +1,4 @@
+Implement user security - account lockout after X bad password attemnpts, password expiration, lock down user for specific IPs [VG-807]
+Fix audio player RTP picker (some RTP streams did not showed up) VS-442
+Add new daily report concurrent calls license (which is the same as GUI menu->tools->concurrent calls) VG-563
+Update vm binary to 16.0

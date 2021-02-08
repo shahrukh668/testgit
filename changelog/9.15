@@ -1,0 +1,1 @@
+add new cdr chart series for short calls under 20 seconds and 60 seconds (connected). It was added also in CDR group window in sip response columns (dur <20s and dur <60s percentage from all connected calls). This should help to quickly see if there is increase in number of short connected calls. VG-347

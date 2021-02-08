@@ -1,0 +1,2 @@
+Fix daylight savings offset (the GUI will ask what is your timezone) 
+Fix downloading RTP in merge pcap for users with denied RTP download

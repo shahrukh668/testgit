@@ -1,0 +1,7 @@
+Increase username's size to the 256 chars.
+allow regex pattern in trim prefixes (alert country continent destination). The regex is determined by '^' character as first char in 'trim prefixes' string [VG-1237]
+fix issue with cps chart for second axis [VG-1240]
+ignore too high jitter values in rcpt packets [VS-590]
+fix issue with note 'abort connection' in mysql log [VS-613]
+fix license issue when installed on ZFS file system 
+add option ini_set('session.cookie_secure', 1) [VG-1172]

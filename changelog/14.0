@@ -1,0 +1,7 @@
+New timezone internal handling allows to have remote sniffers in UTC timezone (>=15.1 sniffers) and global timezone set for the GUI which will recalculate UTC to proper timezone. [VG-817]
+Fix issue with dashboard time intervals
+Fix unsupported browser for internet explorer 11 [VG-825]
+When user is deleted or changed in GUI, user is unlogged / changed permissinos automatically [VG-811]
+Add batch pcap download (like batch wav download) [VG-813]
+Fix apply filter on individual series in charts [VG-827]
+In fraud concurrent calls there is now able to select by RTP stream IP addresses - two modes one by individual RTP streams or by IP groups (defined in tools->IP groups) (sniffer >= 15.1) [VG-829]

@@ -1,0 +1,2 @@
+fix issue with reset id (if table is empty an mysql is restarted) in table fraud alert_info which caused alerts stop working
+fix permissions for playing AUDIO when doing CDR public share and user has active session with denied AUDIO play

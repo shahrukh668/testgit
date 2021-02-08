@@ -1,0 +1,1 @@
+fix move license file when upgrading from main window page (if you have problem after upgrade run debian: cd /var/www/; mv backup-*/bin/lic ./bin ; centos: cd /var/www/html/; mv backup-*/bin/lic ./bin) 

@@ -1,0 +1,3 @@
+fix exporting data in dashboards [VG-1742]
+use dashboard cache/aggregation for api getDashboardPanel [VG-1720]
+custom columns for CDR/RTP alerts - add tooltips, allow disable custom columns grid instead of hiding, fix disable column [VG-1757]

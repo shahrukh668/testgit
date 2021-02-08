@@ -1,0 +1,4 @@
+enable set custom columns in rtp alert/report even if custom headers does not exists [VG-1831]
+fix uploading 30 days trial key 
+fix hwid when GUI is running in docker
+fix slow GUI -> settings -> sensors loading on some installations

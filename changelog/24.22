@@ -1,0 +1,10 @@
+speed optimization in cdr and messages grouping queries [VG-2064]
+optimize sql where-conditions for multi charts filters 
+added debug tool in billing settings so users can try how CDR will be rated and why [VG-2019]
+do not refresh dashboard widgets if they are not in focus [VG-2046]
+do not search IP in cdr_proxy by default as this query is slower by magnitude - user have to check searching for IP in cdr proxy manually [VG-2057]
+enable only store numeric value for type value 'integer' in configuration.php [VG-2066]
+fix reason q850 text in cdr group [VG-1997]
+Fix tooltip message for duration rtp column
+SIP REGISTER fixed export now show UNREGISTER instead of OK for UNREGISTER state [VG-2049]
+update vm binary to the 26.11

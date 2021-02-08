@@ -1,0 +1,28 @@
+#!/bin/bash
+
+ps ax | grep -v grep | grep tcpdump_watch > /dev/null
+result_check_tcpdump_watch=$?
+if [ "$result_check_tcpdump_watch" -ne "0" ] ; then
+    echo "service tcpdump_watch is not running"
+    exit
+fi
+
+rslt=/tmp/tcpdump_rslt_$(date +%Y-%m-%dT%H:%M:%S)
+echo "$@|$rslt" > /tmp/tcpdump_start_params
+
+counter=0
+while [ $counter -lt 120 ]; do
+    if [ -f $rslt ]; then
+        rslt_filesize=$(stat -c%s "$rslt")
+        if [ $rslt_filesize -gt 0 ]; then
+            break
+        fi
+    fi
+    sleep 1
+    let counter=counter+1
+done
+sleep 1
+
+echo $(cat $rslt)
+rm $rslt
+#rm /tmp/tcpdump_host_params

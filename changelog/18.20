@@ -1,0 +1,11 @@
+add possibility to share Network Maps (similar to CDR share) [VG-1342]
+modify condition for 'smart field border' in csv export (add option CSV_DISABLE_SMART_FIELD_BORDER to disable 'smart field border' in csv export) [VG-1488]
+add support for easter friday in billing holidays
+set upload_max_filesize in constants.php
+when the licence expires don't send any output to stdout from the cron alert script to prevent 'mail bombing' every minute [VG-1492]
+fix adding already assigned sensors in users [VG-1470]
+add ioncube consistency test between the installed php version and downloaded gui's version [VG-1472]
+dashboard api url - encode json string [VG-1481]
+added more colors in dashboard SIP responses [VG-1489]
+allow national settings for each sniffer [VG-1425]
+updated bin/vm to the latest version (some audio fixes)

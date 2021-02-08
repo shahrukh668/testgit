@@ -1,0 +1,3 @@
+Fix billing calculation for t1 <60 [VG-1054]
+Fix phpCalc binary in combination with daylight saving time [VG-1055]
+Allow filtering for RTP streams with specific packet numbers and specific number of RTP streams. This allow to search for calls with >2 streams or search special combination when there are 2 normal streams and third stream with < N packets (which covers situation when random RTP packets are sent) [VG-1052]

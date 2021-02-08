@@ -1,0 +1,24 @@
+new dashboard chart caching feature which works like RRD - round robin database. Now when user wants to create 30 days charts he will be asked to convert it to RRD chart which allows instant chart render accross any interval. Data are calculated using background processing (spawned from crontab). This feature is working only for chart dashboard widgets. 
+add SIP-ALG detection in cdr / register filters [VG-1140]
+apply new sniffer parameter --big-jitter-resync-threshold for creating audio if a_d300 > 0 or b_d300 > 0 [VS-847]
+new capture rule option allowing to disable DTMF recording (to comply with PCI) [VS-796]
+display zeroSSRC flag and allow filtering for it (usefull for searching calls with zero SSRC) [VS-844]
+refactor GUI -> sensor communication to asynchronous calls (fixes GUI unresponsivness when connection stalls) [VG-1685]
+allow negative offset in CDR charts (like in dashboards) [VG-1515]
+display an info about the current date and the expiration date when the license expires [VG-1699]
+add support for copy to clipboard (cell, row, table) to cdr groups/summary [VG-1694]
+allow to pass parameters to alert script via temporary file [VG-1692]
+allow to manually run alert even if it is disabled [VG-1704]
+add cdr.id limitation to multiple queries in report generator which fixes differences in report generator and CDR section [VG-1690]
+fix tooltips in sensor configuration - show tooltip bubble only if tip is defined [VG-1693]
+update vm binary to the latest which fixes iLBC for 20ms packetization
+suppress apache warnings when internet is not accessible [VG-1671]
+fix graphic issues with chrome >= 70
+fix expires header column in register/state 
+fix report sent for wrong period when previous month is used [VG-1698]
+fix copy to clipboard in daily reports [VG-1701]
+fix save dashboard template - fix reset user / group restrictions [VG-1705]
+charts - fix percent in tooltip if area is not primary [VG-1714]
+charts - fix ext-js issue with theme-colors in combination of stacked and not-stacked series [VG-1713]
+add utf-check response from sniffer [VG-1683]
+suppress ip 0.0.0.0 in alerts / reports 

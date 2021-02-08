@@ -1,0 +1,9 @@
+PHP 7.2 fixes 
+Wait for sensors when upgrading / restarting [VS-743]
+Optimize fraud_alert_info when there are too many alerts - CPU was on 100% and GUI was unusable [VS-745]
+encode username in create dashboard link which fixes @ in username [VG-1481]
+allow to set sip register alert trigger for at least 1 registration in interval (added checkbox for not condition for user agents in alert 'SIP REGISTER user agent', added checkbox for not condition for interval in alert 'SIP is active REGISTER') [VG-1405]
+add parameter json [true/FALSE] to api function reportSummary [VG-1464]
+send sniffer crash backtrace to crash_sniffer@voipmonitor.org (or to email defined in CRASH_BACKTRACE_TO_EMAIL) 
+remove phone number length condition from nanpa rules [VG-1474] 
+add 'advanced mode' to table 'customer country prefixes' [VG-1395]

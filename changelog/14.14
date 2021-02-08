@@ -1,0 +1,5 @@
+fix get download .graph from spool in case of multiple spool directories [VG-852]
+fix cron warning PHP Warning: session_start(): Cannot send session cookie - headers already sent [VG-854]
+download wkhtmltopdf and wkhtmltoimage in zip format (with test zip) [VG-839]
+fix sort by columns in GUI->dashboard 'Grid overview' and in report->QOS [VG-824] [VG-871]
+fix audit log detail [+] and properly escape quotes [VG-842]

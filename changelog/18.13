@@ -1,0 +1,5 @@
+fix reset filter in active registers [VG-1454]
+add menu in export chart to pdf (simple method and A4 print method) [VG-1453]
+fix RTCP graph in CDR detail which can take different stream (if call has multiple RTP streams) [VS-683]
+fix audio conversion when id_sensor is changed after cdr is already in the database and non standard sip ports are used
+fix if upload_max_filesize or post_max_size set to 0 [VG-1465]

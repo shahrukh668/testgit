@@ -1,0 +1,5 @@
+fix json result for bad SID (API) [VG-1227]
+use absolute path for all binary utilities (fixes mergecap errors)
+fix random black line in SIP history [VG-1223]
+allow select own favicon in settings [VG-1217]
+check for zip module which is required [VG-1231]

@@ -1,0 +1,3 @@
+flush sniffers when downloading pcap files (requires sniffer 11.5) - no more waiting for unwritten data for recent CDRs. 
+all csv exports are now delimited by semicolon which will be hopefully good for everyone (excel/oo/..)
+fix csv export for very large numbers in excel

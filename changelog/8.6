@@ -1,0 +1,2 @@
+set PHP session to ramdisk /dev/shm to avoid blocking ajax operations due to slow flock I/O especially on SSD disks (isn't it curious?). This fixes slow responsivnes of the GUI when doing parallel background ajax requests.
+hide mysql parameteres in sensor settings which confuses people and is not used anywhere yet. 

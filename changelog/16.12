@@ -1,0 +1,6 @@
+allow to disable showing flags in front of numbers and IP addresses in CDR view or allow user to change it to the right in toolbar or settings - user configuration [VG-1162]
+add configuration for secondary database which will be used for alerts / cron and reports so the main database will be not overloaded and locked by long queries (this requires redundant db setup) [VG-1154]
+fix 'empty alert' when previewing concurrent calls alert
+allow changing colors for 'sip responses xxx' chart (no more RED for 200 OK which confuses people) [VG-1147]
+do not show "local" if country is not recognized [VG-1159]
+update bin/vm to the latest

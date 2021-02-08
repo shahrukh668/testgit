@@ -1,0 +1,3 @@
+split long lines in SIP history diagram which fixes empty text above arrow 
+fix mask load in packet detail / text panel
+if VPMANAGERPORT not set do not automatically show sensor in sesnors grig.

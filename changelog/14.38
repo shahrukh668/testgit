@@ -1,0 +1,2 @@
+fix audit log not showing records in GUI (>= 14.36)
+optimize sql queries when merging http/sip

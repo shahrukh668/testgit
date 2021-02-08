@@ -1,0 +1,5 @@
+Extend timeout in CDR group panel beyond 300 seconds
+In live sniffer add new combo to allow filtering based on To or From [VS-242]
+fix wav player & show fax in report / call detail records (and fix csv export timeout error) [VG-802]
+fix error 'cdrsumary need set time interval' message when opening GUI from alert email 
+add passive mode button for charts in dashboard which shows raster PNG images instead of SVG graphics which speedups browser loading (but disables chart interactivity) 

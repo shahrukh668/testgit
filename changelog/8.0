@@ -1,0 +1,6 @@
+enable anti-fraud alerts for everyone. It needs 10.0.9 sniffer verison. 
+optimize chunk player
+remove tags <!DOCTYPE HTML> from index.php and admin.php which fixes html table issue in firefox
+use play file demo/play.raw for chunk player in demo mode (need mono 16bit pcm 8khz)
+add delete alert informations (in table fraud_alert_info) in alert processing
+

@@ -1,0 +1,3 @@
+Fix pcap downloads in mirror sniffer mode (if defined in GUI with id number) 
+Fix deleting of original SIP pcap file when RTP is missing from local spooldir (fixes >= 9.23)
+Fix opening detail in MESSAGE section

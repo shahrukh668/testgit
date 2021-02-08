@@ -1,0 +1,6 @@
+fix import from csv - if string field contain "\n" [VG-982]
+add convert sipcallerip, sipcalledip in export register to csv [VG-893]
+respect user restrictions for getVoipCalls api call [VG-897]
+add html5 clipboard copy instead of flash
+fix PDF fax export
+fix G729 audio out of sync for comfort noise packets

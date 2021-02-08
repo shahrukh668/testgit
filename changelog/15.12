@@ -1,0 +1,3 @@
+add table for no hashing messages rules (settings / mesasage types) [VG-838]
+use png instead of svg in 'Concurrent Calls - license chart' [VG-1045]
+apply user filters in audit log [VG-1044]

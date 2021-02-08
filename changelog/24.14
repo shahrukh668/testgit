@@ -1,0 +1,3 @@
+fix charts (broken in 24.13) 
+show number of packets in RTP stream list (when clicking on RTP IP) [VS-1030]
+use full width when expanding CDR detail [VG-1995]

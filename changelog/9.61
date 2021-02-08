@@ -1,0 +1,1 @@
+add checkbox "only connected" in fraud cdr change country and fraud destination to prevent false alerts based only on single SIP INVITE message (scanners). You need sniffer 10.1.41 to support this [VG-373]

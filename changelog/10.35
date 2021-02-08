@@ -1,0 +1,4 @@
+fix play audio when audit mode is enabled [VG-619]
+fix use sensor local in active calls if another local sensor with another port exists exists [VG-620]
+fix dashboard chart generation in case it is configured from template and that template had some date range which could lead to generate millions intervals using all server memory. Fix some dashboard refresh. 
+fix PHP error for older php causing share cdr.php page to show blank page

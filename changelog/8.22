@@ -1,0 +1,3 @@
+fix sql where condition in report generator
+add content length to summary of message
+fix literal: 'Mesage' -> 'Message'

@@ -1,0 +1,61 @@
+<html>
+<head>
+	<title>Chart</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<link rel="stylesheet" type="text/css" href="../extjs/resources/css/ext-all-gray.css">
+	<script type="text/javascript" src="../extjs/ext-all-debug.js"></script>
+	<script type="text/javascript" src="other/charts_overrides.js"></script>
+	<script type="text/javascript" src="layouts/cdr.chart.js"></script>
+	<script type="text/javascript" src="other/functions.js"></script>
+	<script type="text/javascript" src="other/color_functions.js"></script>
+	<script type="text/javascript" src="other/constants.js"></script>
+	<script type="text/javascript" src="data/constants.js"></script>
+	<script type="text/javascript" src="data/arrays.js"></script>
+	<script type="text/javascript" src="localization/lang-global-en.js"></script>
+	<script type="text/javascript">
+
+var enableTestSipUsers = false;
+var enableGroupCdrByIpGroups = false;
+var enableFilterCdrByIpGroups = false;
+
+Ext.onReady(function() {
+	setAppData();
+	chart({
+		typeTimeInterval: 'last_7d',
+		timeAxis: 'TA_DAYS',
+		chartType: 'TCH_sipResponse',
+		chartData: null
+	});
+} )
+
+function chart(chartConfig) {
+	var configForm = new CDR.Chart.ConfigForm;
+	Ext.apply(chartConfig,
+		  configForm.completeChartConfig(chartConfig.chartType, chartConfig.chartData));
+	if(chartConfig.typeTimeInterval) {
+		var timeInterval = getTimeInterval(chartConfig.typeTimeInterval);
+		chartConfig.dateFrom = timeInterval[0];
+		chartConfig.dateTo = timeInterval[1];
+	}
+	var store = new CDR.Chart.Store({
+		chartConfig: chartConfig
+	});
+	store.loadChartData({
+		url: '../php/reports/charts.php',
+		onLoad: function(result, store) {
+			new CDR.Chart.Chart({
+				store: store,
+				renderTo: 'chart',
+				width: 1024,
+				height: 768
+			});
+		}
+	});
+}
+
+	</script>
+</head>
+<body>
+	<div id="chart"/>
+</body>
+</html>

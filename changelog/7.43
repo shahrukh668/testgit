@@ -1,0 +1,7 @@
+fix dashboard reloading 
+use UNION when filtering CDR by ip group in CDR group panel (right bottom)
+in email alert add option which shows summary in subject
+change upgrade icon in senzor from green to upgrade red text
+allow deleting sent alerts via context menu 
+check for pcap files also in local spooldir in case of remote sensor 
+fix upgrade sql schema after doing upgrade (user sometimes need to logout/login)

@@ -1,0 +1,14 @@
+fix issues with slow join cdr_next, fix cdr_rtp join for binary calculation of cdr groups (speedups some sql quires)
+fix privilege for download wav via api.php [VG-1026]
+add method getPCAP to api.php [VG-1027]
+split can_listen to can_play_audio and can_download_audio [VG-833]
+disable show tab 'setting chart' in cdr charts for no-admin users [VG-1038]
+add time new time interval for charts: 'previous month' [VG-1041]
+add possibility to filter numbers using underscore char "_" in active calls. When underscore is used, longer number is truncated (matching without prefix OR suffix) [VG-578]
+CDR view column name change from "Called dst RTP MOD" to "Called src RTP MOS"
+add support for URL preview for messages with url [VG-835]
+get licesnse via wget if xmlrequest to voipmonitor.org failed (user can set http proxy in wgetrc file) [VS-504]
+Fix Y axe rounding in RTP .graph for nanoseconds 
+add destination prefixes filter option in realtime concurrent calls alert (sniffer >= 17.4 required) [VG-836] 
+remove filter field from sensor combo [VG-1043]
+add indications voicemail active / inactive to messages [VS-870]

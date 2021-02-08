@@ -1,0 +1,2 @@
+significantly speed up CDR group loading and dashboard loading (and all sections where percentiles were calculating)
+fix caller/called filters in MESSAGE filter window [VG-806]

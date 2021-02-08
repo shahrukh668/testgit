@@ -1,0 +1,21 @@
+#!/bin/bash
+
+while [ true ]
+do
+
+if [ -f /tmp/tcpdump_start_params ]
+then
+    params_out=$(cat /tmp/tcpdump_start_params)
+    params=$(echo $params_out | sed 's/^\([^|]*\)|\(.*\)/\1/g')
+    out=$(echo $params_out | sed 's/^\([^|]*\)|\(.*\)/\2/g')
+    params_ip=$(echo $params | sed 's/^\([^@]*\)@\(.*\)/\1/g')
+    params_par=$(echo $params | sed 's/^\([^@]*\)@\(.*\)/\2/g')
+    #echo $params_ip > /tmp/tcpdump_host_params
+    #tcpdump -F /tmp/tcpdump_host_params $params_par > $out 2>&1 &
+    tcpdump $params_par "$params_ip" > $out 2>&1 &
+    rm /tmp/tcpdump_start_params
+fi
+
+sleep 1
+
+done

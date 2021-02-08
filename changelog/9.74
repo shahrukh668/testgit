@@ -1,0 +1,2 @@
+strict checkbox in cdr filter for loss/delay now uses AND condition instead of OR
+fix filters in reports (broken since 9.7X) 

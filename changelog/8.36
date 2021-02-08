@@ -1,0 +1,3 @@
+Show proper message when rrdtool is not installed on sensor. 
+apply cdr filter when clicking on sip response pie chart in dashboard
+preliminary support for webrtc 

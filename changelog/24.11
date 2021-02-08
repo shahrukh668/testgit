@@ -1,0 +1,5 @@
+rebuild detect sniffer parameters for all cases (fixes audio when zerossrc is enabled) [VG-1836]
+added support for mysql ssl connection for bin/charts [VG-1973]
+merging pcap files are now parallelised [VG-1800]
+live sniffer start and live sniffer stop are now logged to audit log [VG-1975]
+updated bin/vm to 26.7

@@ -1,0 +1,2 @@
+make RTCP values in RTCP chart consistent - do not show raw values but delimit it by timestamp so it represents milliseconds and is consistent with max/avg RTCP jitter in cdr database 
+update vm binaries to the latest version which fixes pcap imports via GUI for multiplexed RTCP 

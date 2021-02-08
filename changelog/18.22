@@ -1,0 +1,3 @@
+fix live sniffing
+allow billing limitation per sensor [VG-1425]
+increased interval for last CDR age in sensors alert. Now can be set in to 86400(24h) [VG-1501] 

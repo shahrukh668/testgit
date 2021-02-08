@@ -1,0 +1,4 @@
+new 3D realtime RTP charts - in CDR bottom panel / active calls and in Dashboard (new RTP stat 3D charts). Those charts are using data from rtp_stat which are enabled for a long time. Those data shows statistics for RTP source IP streams sampled every 10 seconds which allows realtime RTP metrics before CDR is written to the database. 
+added caller name to simple CDR view [VG-1065]
+charts - apply timeoffset to tooltips [VG-880]
+update vm binary to the latest

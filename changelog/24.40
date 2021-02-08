@@ -1,0 +1,4 @@
+new option ET_COOKIE_SAMESITE_NONE_IN_LOGIN_BY_SID needed for 'SameSite=None' in login by SID [VG-2071]
+fix NER calculation [VG-2189]
+fix php security issue (php injection for logged users) [VG-2194]
+

@@ -1,0 +1,6 @@
+check ip address in the ip capture rule before save [VG-1896]
+add support for time accuracy in milliseconds - requires sniffer 25.6 and DB update (tools -> check mysql schema) [VS-586]
+use user-groups in api.php [VG-1894]
+fix performance issue in mariadb with query for check max calldate/callend [VG-1899]
+use filter items last_days and last_minutes in group stat charts [VG-1890]
+update vm binary to 25.6 (fixes G729 sync issues for some cases) 

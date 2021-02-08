@@ -1,0 +1,5 @@
+fix issue with internet explorer
+add connected filter in active calls (requires sniffer >10.0)
+add new user privilege which allows CDR deletion for non admin users 
+adjust color in spy chart for better reading
+fix "send alert if" option in alerts

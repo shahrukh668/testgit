@@ -1,0 +1,2 @@
+fix apache/http 100% cpu usage for .graph charts since sniffer >= 14
+add otional parameter calldate (YYYY-MM-DD) to api function getVoiceRecording which signifficantly speeds up searching for call-id (and use 3-pass search for cdr if searching by call-id without parameter calldate: 1st-pass - find in today, 2nd-pass - find in yesterday, 3rd-pass - find without calldate condition which can take very long depending on number of days in database)

@@ -1,0 +1,6 @@
+added support for PHP 7.X
+autoselect servers for clients in active calls [VG-1473]
+fix sql errors in dashboard if sensor id does not exits [VG-1475]
+in users - sensors do not show sensors which are already assigned [VG-1470]
+fix storing resizing CDR columns for users logged via custom login [VG-1478]
+added support for active calls in clinet/server mode [VG-1479]

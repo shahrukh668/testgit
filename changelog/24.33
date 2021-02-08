@@ -1,0 +1,4 @@
+Allow recalculate CDR prices [VG-2019]
+Fix javascript cross site scripting [VG-2147]
+Fix potentional sql injection [VG-2145]
+Fix dns in ip filter [VG-2144]

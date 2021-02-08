@@ -1,0 +1,2 @@
+implement filter for IP address in active calls filter using wildcard % (example: 192.168.%) [VG-682]
+support for LZO compression methid when tar is disabled (fixes problem with downloading/merging/listening calls when LZO is enabled (which is when tar=no) 

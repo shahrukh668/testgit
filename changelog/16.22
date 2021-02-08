@@ -1,0 +1,14 @@
+fix some SQLi and XSS vulnerabilities, remove flash for clipboard copy (obsolete) [VG-1172]
+fix alert billing over quota if currency is not set in billing rules [VG-1168] [VG-1107]
+fix binary downloading in upgrade and installation (wget / certificates issues) [VG-1182]
+disable zip response for manager command listregister in cloud mode [1182]
+disable configuration sensor timezone in cloud mode [1188]
+fix sql escape for multiple country condition
+add sip-ports parameter to load pcap via gui (sipports is detected from sensors) [VG-1189]
+fix continent filter in CDR filtering 
+add vx-opus codec support [VS-386]
+add support for napa numbers without '1' prefix [VG-1178]
+allow concurrent calls triggering 1 call that fits criteria - previously only >= 2 was allowed 
+fix dashboard panel 'CDR grid by sip response' and fix dashboard name mismatch [VG-1196]
+change name of column in send alerts sent_at to start_at the batter describe which time is there 
+fix PHP Warning: unlink(/tmp/voipmonitor.testpid): No such file or directory [VG-1202]

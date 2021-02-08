@@ -1,0 +1,4 @@
+enable deduplication when download pcap file [VG-1816]
+fix active calls map for private ip addresses 10.x.x.x [VG-2068]
+fix js error when opening cdr detail in some cases [VG-2077]
+fix bin/vm which were segfaulting in prev version 

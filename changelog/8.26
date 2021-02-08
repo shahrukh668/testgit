@@ -1,0 +1,6 @@
+fix wrong error message when returning to live sniffer
+remove obsolete constant VPMANAGERPORTS
+fix enable / disable edit and delete record in grid via context menu
+fix non admins privilege for local sensors
+enable sip history for all users
+

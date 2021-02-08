@@ -1,0 +1,2 @@
+Fix realtime audio player for safari browsers 
+add capture rules based on custom SIP headers (requires sniffer 11) [VG-508]

@@ -1,0 +1,2 @@
+fix not (!) operator in CDR filter even if the column is NULL [VG-2041]
+fix render bug when selecting checkbox in CDR id column [VG-2047]

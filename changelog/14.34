@@ -1,0 +1,4 @@
+add voipmonitor favicon
+enable symbol '+' at the beginning of the prefix / number in billing configuration [VG-955]
+add checkbox 'never show again' to internet explorer alert
+update vm binary to the latest

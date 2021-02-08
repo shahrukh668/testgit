@@ -1,0 +1,2 @@
+modify counting concurrent calls for license and group it by last 6 digits from called number and not the caller. This reduces number of channels and should show accurate number of calls regardless on number of legs. 
+

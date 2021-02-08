@@ -1,0 +1,8 @@
+implemented country flags for src/dst IP addresess and src/dst tel. prefixes (sniffer >= 18.1 needed) [VG-319]
+new filtering based on country src/dst
+new country groups in CDR bottom group panel 
+new country groups in Dashboards (custom CDR grid - by country IP or num 
+dashboard widget is now able to share via special URL link which will serve PNG so it can be included in external page (chain icon in dahsboard toolbar) [VG-51]
+added distribution of user agents to dashboard and 'cdr sumary' report [VG-67]
+fix layout (select_sensors, agregation) in fraud alerts
+bin/vm updated to the 18.1

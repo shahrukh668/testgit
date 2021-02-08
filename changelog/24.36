@@ -1,0 +1,1 @@
+fix mysql 8 compatibility (broken in 24.35) 

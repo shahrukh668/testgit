@@ -1,0 +1,12 @@
+Update vm binary (SRTP decryption support)
+check if there are international rules when selecting active calls map [VG-1440]
+fix sensor-color in active calls
+in users configuration disable checkbox 'can_pcap' if 'simple_cdr' is checked [VG-1441]
+use 'customer geoip' in cdr detail / map [VG-1439]
+fix tempalte combinations in CDR filter [VG-1443]
+fix false alerts [VG-1417]
+fix / rebuild save chart to svg [VG-1445]
+fix php function checkIpInSubnet for subnet 0.0.0.0/0 [VG-1442]
+use user restrictions (number, ip, domain) in active calls
+fix some php warnings [VG-1446]
+fix issue with sql condition for datetime_to '23:59' [VG-801]

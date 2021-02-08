@@ -1,0 +1,22 @@
+<style>
+   td { vertical-align: top; }
+</style>
+
+<table border="0" style="font-size: 10pt;">
+<tr>
+   <td>created&nbsp;at:</td>
+   <td>{:created_at}</td>
+<tr></tr>
+   <td>created&nbsp;by:</td>
+   <td>{:created_name}</td>
+<tr></tr>
+   <td>comment:</td>
+   <td>{:description}</td>
+<tr>
+[=(:$data->alert_descr)?
+   "</tr>
+       <td>highlight comment:</td>
+       <td>{:alert_descr}</td>
+    <tr>":
+   ""]
+</table>

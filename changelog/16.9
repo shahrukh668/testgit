@@ -1,0 +1,14 @@
+add support for sender id-sensors in active calls for selected sniffer senders, set background color in sensors & apply in active calls, add sensors string to localization system [VG-781]
+add support for dtmf type in sip history [VG-845]
+allow searching by multiple call-id in cdr form - separators: ',', ';', ' or ', ' OR ', '|', '||', ' ' [VG-991]
+disable % character in capture rules prefix which is not myslq syntax to prevent errors [VG-1133]
+add two new special types in custom header 'max_length_sip_data', 'max_length_sip_packet' which allows to store and search by the largest SIP packet so user can find packets with >= N bytes [VG-1067] 
+allow concurrent calls alert trigger by summarize which will not filter by IP or by tel.num (so it is like global concurrent calls alert) (sniffer >= 17.15) [VG-1134]
+fix issue with default (unset) timezone
+Add grouping by user agent in CDR group panel (group by user agent and its pie chart) and in top calls tab - group by user agent which shows calls by user agent [VG-67]
+do not offer delete pcap files if tar = yes (which is default) since it is impossible to selectively delete pcap files in that format (it is trade of for fast I/O) [VG-1138]
+fix repeating alerts (sending email) for some cases [VG-1136]
+add support for BYE which has respond transcation does not exists sniffer >= 17.15 [VG-808]
+enhance active calls - suppress concurrent requests, disable mask only for auto-reload, disable reload realtime RTP if charts panel is collapsed
+extended timezone functions in dashboard - add support for different OS timezone and client timezone in 'last' intervals
+fix paginator in CDR toolbar if filter is used (it showed more CDR than it should)

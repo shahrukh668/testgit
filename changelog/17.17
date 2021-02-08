@@ -1,0 +1,3 @@
+fix unzip when php zip class is missin [VG-1351]
+add pause/unpause api call [VG-1351]
+fix audio decode for 32 bit platforms [VG-1360]

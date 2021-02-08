@@ -1,0 +1,7 @@
+implement chart cache - keep computed intervals in cache and do not calculate it again (dashboards can now be configured for week / month intervals with many CDR) [VG-1511]
+fix charts - suppress highlight of line with set fillStyle attribute
+added auto audit log - when user listens to call it automatically log it (new options "AUTOAUDIT_TEMPLATE_PLAY_WAV" in GUI settings) [VG-1414]
+export sip history in text form [VG-1476]
+add support for set timezone in billing rules [VG-1425]
+suppress duplicate partition error from query 'call billing_agregation_create_parts()' [VG-1506]
+display sensor's name in cdr view [VG-1461]

@@ -1,0 +1,9 @@
+added NER (Network Effectiveness Ratio) metric (charts, alerts, cdr groups, etc.) [VG-868]
+added asr average in charts (same as acd average) [VG-1807]
+fix issue with filtering by cdr country in alerts / reports [VG-1809]
+added support for new cdr columns mos_silence [VG-1801]
+optimize alert type sensors [VG-1787]
+show cdr.bye and cdr.flags issues in cdr summary
+fix dashboard caching CPU spikes [VG-1810]
+fix stop mysql query in reports - view / send
+

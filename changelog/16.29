@@ -1,0 +1,4 @@
+fix bad key content for some cases
+suppress reaload 3d chart if parent panel is inactive [VG-1222]
+fix  cdr_rtp.sport/dport error [VG-1233]
+add option SPOOLDIR_BY_SENSOR [VG-1232]

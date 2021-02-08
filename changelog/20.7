@@ -1,0 +1,14 @@
+fix user configuration for non-admin users [VG-1625]
+fix set 'time period rules' in alert 'realtime concurrent calls'
+fix check if password expired / fix store records in users_history
+add check if new password different from old (in password expiration)
+update geoip data
+fix searching for last sip response if user search for "000" [VG-1636]
+fix audit log when user is logging by using API [VG-1637]
+fix backuping huge tables 
+add possibility to hide GUI->User settings->User configuration [VG-1640]
+change google maps to openstreet maps (admin can change it back to google maps in configuration) 
+add support for localize text for response 'liveaudio is disabled' [VS-811]
+remove obsolete constants from configuration.php (INTERNATIONAL_PREFIX, NATIONAL_PREFIX, NATIONAL_PREFIX_2, NATIONAL_PREFIX_3, NATIONAL_NUMBER_LENGTH_MAX) [VG-1634]
+update vm binary to the latest version
+fix group_concat constant which fixes realtime concurrent calls if list of alerts are larger [VG-1655]

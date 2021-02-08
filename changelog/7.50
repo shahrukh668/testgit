@@ -1,0 +1,4 @@
+fix sniffer version num for ok condition (10.0 > 10.0RC27)
+fix clipboard text render and use standard spaces at end of text in cZeroClipboardMenuItem
+add support for capture rules by domain (needs sniffer 10.0) and add support for hash SIP SMS in capture rules
+support local http proxy when upgrading GUI

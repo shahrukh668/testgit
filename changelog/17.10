@@ -1,0 +1,2 @@
+fix remove dashboard panels [VG-1326]
+fix mask if login failed - remove tag <pre> from index.php

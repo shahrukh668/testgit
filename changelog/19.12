@@ -1,0 +1,7 @@
+new dashboard widget shows data from rtp_stat - (realtime RTP metrics) [VG-721]
+in CDR detail show data from cdr_siphistory (it must be enabled in sniffer) - grid / filtering [VG-660]
+support for mysql custom port: php php/run.php backupGuiTables -f backup.zip -h 127.0.0.1:3307 -u root -p pass -d voipmonitor
+fix cdr group 'top calls' and 'top calls distribution' (missing labels / remove empty title bar in chart tab) [VG-1562]
+fix timezone change in grid reports [VG-1555]
+fix filtering by sip responses in cdr filter (now you can use: 4,!487 Block%) [VG-1554]
+update vm binary to the latest (fixes some audio decoding cases) 

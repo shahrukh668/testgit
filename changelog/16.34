@@ -1,0 +1,2 @@
+fix issue with session parameters httponly & secure
+do not require bin/vm on arm

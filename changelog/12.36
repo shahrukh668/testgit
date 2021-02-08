@@ -1,0 +1,3 @@
+fix MESSAGE format for content type [VS-340]
+new share option 'share sip history' for merged sip history in cdr & message 
+fix q.850 reason name in CDR groups (broken since 12.35) [VG-812]

@@ -1,0 +1,13 @@
+fix chunkplayer on 32bit PHP
+hide mos_lqo parameters in capture rules if lqo disabled in configuration.php
+add last 8 hours interval in charts
+mark domain group as caller / called and use it in search forms
+add who_hangup to cdr filter
+add tel. groups in report generator
+fix get graph image in gui for some call-id file names (including +) 
+fix daily reports for older versions which were upgraded to the latest (empty charts) 
+add check exists urw-font in folder /usr/share/fonts/urw-fonts (in index.php)
+do not report error when run.php cannot contact upgrade server
+fix create audio folder if not exists - in convert pcap to wav
+fix - prevent infinite query in lib.php
+add button for new dashboard

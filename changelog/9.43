@@ -1,0 +1,5 @@
+Force calldate key for all CDR queries which solves slow queries
+check DNS resolv for upgrade
+fill license token from db if present 
+fix typo in livepacket which shows source sip port instead of destination port [VG-468]
+do not put characters like : > when downloading batch download audio zip which is then not possible to extract on windows [VG-488]

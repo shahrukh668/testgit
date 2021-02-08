@@ -1,0 +1,4 @@
+fix 9.47 javascript error
+fix capture rules form [VG-519]
+fix disk space leak in /tmp when downloading pcap files 
+autodelete old template files

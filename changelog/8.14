@@ -1,0 +1,2 @@
+modify license concurrent calls algorithm to group calls by callerid by last 6 digits which should help to lower peaks in case caller number changes 
+allow to set hostname in settings -> sensors (only IP addresses were allowed) 

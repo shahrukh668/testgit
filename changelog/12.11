@@ -1,0 +1,4 @@
+fix DNS IP lookup in CDR and Message if enabled in toolbar [VG-273]
+suppress skype click to dial in GUI [VG-529]
+fix user credentials (accidentally non-admin can not do anything)
+fix check set time interval for cdr and message - use it only for task LISTING (fixes csv export) 

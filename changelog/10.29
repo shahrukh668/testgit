@@ -1,0 +1,1 @@
+add relative date range (last days) for cdr filter so if user wants to store cdr filter template it will always represents last X days. This new last days item is present in all places where CDR filter is. 

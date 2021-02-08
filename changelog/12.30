@@ -1,0 +1,4 @@
+use exponential scale for waveform in new wave player 
+retain sox binary when upgrading gui 
+update and use vm binary for decompressing tar.gz files which fixes audio download for some cases
+fix email subject for alerts (missing no cdr match) [VG-794]

@@ -1,0 +1,5 @@
+split option can_cdr_share to share public / private. rearrange checkboxes in users admin [VG-744]
+new user options - can_edit_all_templates, can_delete_all_templates [VG-352], 'read only dashboard' [VG-702]
+add suport for at/every in daily reports [VG-69]
+added sniffer auto upgrade feature [VG-575]
+add support for send call info after first invite (with and without reply) - in Settings -> Send call information [VS-778] 

@@ -1,0 +1,2 @@
+update vm binary which fixes silence audio channel when there are more RTP streams (all >= 9.56)
+add trim prefixes option to fraud and billing rules to be able to trim list of prefixes (which is needed when numbers are prefixed with carrier prefix) 

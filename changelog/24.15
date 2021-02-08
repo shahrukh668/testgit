@@ -1,0 +1,5 @@
+fix displaying Q.850 cause number for some cases [VG-1997]
+fix selecting correlated CDR in Register when user selected specific call date [VG-2009]
+fix colors in intervals charts (fixes 24.14) [VG-2010]
+add 'Chart color' in dashboard active calls chart afor separating sensors [VG-1983]
+display 'no jitter' and 'no packet loss' instead zero value in the RTP stats column in the CDR view [VG-2004]

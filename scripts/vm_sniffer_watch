@@ -1,0 +1,14 @@
+#!/bin/bash
+
+while [ true ]
+do
+
+sleep 2
+
+ps ax | grep -v grep | grep voipmonitor > /dev/null
+result_check_tcpdump_watch=$?
+if [ "$result_check_tcpdump_watch" -ne "0" ] ; then
+    /etc/init.d/voipmonitor start
+fi
+
+done

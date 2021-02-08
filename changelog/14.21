@@ -1,0 +1,7 @@
+add support for RTCP-XR in filter / alerts / dashboards (new MOS XR value). Requires last sniffer version and upgraded database which you can see when sniffer is restarted [VS-87]
+fix RRD date range combo selection in dashboard [VG-876]
+fix crontab error message [VG-873]
+log to audit log fax download [VG-887]
+fix PDF view when RTP remove is enabled for user. 
+log batch pdf download to audit log [VG-865]
+fix normalize_number mysql function (billing) and other functions for billing purpose which can lead to duplicate CDRs [VG-891]

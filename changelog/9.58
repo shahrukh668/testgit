@@ -1,0 +1,1 @@
+fix >=9.56 which broke audio decode for some cases

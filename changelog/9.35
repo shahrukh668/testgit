@@ -1,0 +1,2 @@
+update vm binary which fixes decoding and playing audio for some cases (error when decoding) 
+include http data when downloading pcap file with http data [VG-349]

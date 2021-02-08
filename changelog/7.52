@@ -1,0 +1,6 @@
+fix three state field for set hidemessage in capture rules
+user can select his default dashboard template
+fix error Illegal mix of collations if searching utf8 
+in daily reports is now able to define report which will be generated every day of week or day of month
+fix when user renames sensor it did not reflect it in active calls and other sections unless user logout / login. 
+fix some new hwid glitches

@@ -1,0 +1,1 @@
+in CDR filter interrupted calls are now not those with missing BYE confirmation. In CDR filter in timeout calls added 'missing BYE confirmation' so now user has more control on what is treated as interrupted call.

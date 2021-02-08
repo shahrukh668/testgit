@@ -1,0 +1,5 @@
+fix csv export (compatibility with older php versions) 
+optimize csv export download speed 
+add OR separators (',',';') and remove or suppress borders ([]) in custom headers in cdr search forms
+
+

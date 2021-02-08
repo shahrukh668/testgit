@@ -1,0 +1,3 @@
+Add network map SVG painter in main menu (beta - work in progress)
+Address issue in fraud alert for realtime concurrent calls which showed in CDR more calls then it should
+Increase timeout from 30 minutes to 1 hour in Tools -> concurrent calls 

@@ -1,0 +1,4 @@
+requires new ioncube loader >= 5.0.12 which supports php 5.6. After the upgrade you will be instructed to upgrade the ioncube over SSH. Do the upgrade only in case you have root access to the server now. 
+fix some SIP message escaping VS-288
+fix ip resolve in CDR group by SIP 
+

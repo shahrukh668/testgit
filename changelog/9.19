@@ -1,0 +1,2 @@
+signifficanlty reduce time to load main CDR grid (from >5 seconds to 1) 
+fix filter condition for agent in alert filters (VG-497)

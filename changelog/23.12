@@ -1,0 +1,2 @@
+fix debian 10 compatibility when converting audio [VG-1883]
+update vm/bin to the latest which fixes audio conversion for some cases

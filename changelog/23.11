@@ -1,0 +1,8 @@
+new alert SIP OPTION (mainly for asterisk qualify feature) [VS-614]
+add regex number in billing rule [VS-917]
+convert watchdog billing values from int to float [VG-1874]
+new DTMF save options in Capture Rules [VG-1880]
+fix problem with 2FA permission after first login [VG-1885]
+user restriction based on custom SIP headers, show SIP custom headers in active calls [VS-943], [VG-1703]
+updated vm binary to the latest version (fixes some audio sync issues)
+fix issue with 'select sensors' in alert 'sensors' [VG-1879]

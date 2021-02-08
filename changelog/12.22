@@ -1,0 +1,3 @@
+include sox static binary (fixes >= 12.21) 
+change spectrogram color schema
+fix 12.21 older firefox incompatibilities

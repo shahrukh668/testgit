@@ -1,0 +1,4 @@
+Google sign in integration [VG-1777]
+Fix PHP Catchable fatal error:  Object of class c_date_time could not be converted to string
+Fix alerts query for mariadb 8
+Add documentation for 'match in sip by header' option in the Custom headers

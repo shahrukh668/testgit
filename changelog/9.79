@@ -1,0 +1,1 @@
+in alert rule option 'max lines in body' is now independent on csv checkbox so there is possible to limit number of cdr in the html body (having only the summary report in the email) [VG-550]

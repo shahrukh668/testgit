@@ -1,0 +1,1 @@
+fix SQL error problem leading to duplicate CDR in case billing aggregation is enabled 

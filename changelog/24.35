@@ -1,0 +1,15 @@
+implemented user restrictions to alerts/reports (requires sniffer >= 26.20) [VG-1266]
+add support for regular expression in group of numbers - example R(12[34].*) (requires sniffer >= 26.20) [VG-2161]
+allow landscape orientation in PDF output in Charts reports [VG-1798]
+fix cps_max, cps_avg in grid dashboards [VG-2163]
+fix bug where GUI were checking new versions every minute if not the latest version [VG-2160]
+use a zero instead of space char in concurrent calls report when no calls are in the time interval [VG-1781]
+add convertchar option to the GUI [VG-1781]
+fix .graph charts for php 7.4 (black lines instead of grey) [VG-2155]
+fix get_magic_quotes_gpc warning for php 7.4
+add tooltip to xPDV value in cdr detail [VG-2116]
+fix issues with labels in pie charts (in cdr and message groups) [VG-2170]
+fix name of task when reloading sip_msg (options, subscribe, notify) settings [VG-2165]
+in CDR filter - add Jitter max, Jitter avg in RTP tab [VG-2168]
+export User Agent text names instead of db id (named as a/b_userAgentDesc) in cdr cvs export [VG-2172]
+Return cookie name in bypass_login too. Because it may be other name than PHPSESSID

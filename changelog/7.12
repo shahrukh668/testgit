@@ -1,0 +1,1 @@
+fix - if two IP shares the same hostname in ip lookup the chart in active calls did not sum it but showed only one IP (silently) 

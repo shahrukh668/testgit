@@ -1,0 +1,4 @@
+number of concurrent calls for the license are now groupped by calldate,callerid num,duration which eliminates legs of the same call
+suppress show rtp ip in cdr summary if ip is null or 0.0.0.0
+fix reload chart in cdr after change select via group panel
+license option now contain only license token instead of username / password. Old configuration is automatically converted to new schema. 

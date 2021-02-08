@@ -1,0 +1,3 @@
+support for new sniffer 24.0 
+fix issue with storing 'filter' parameter - fixes searching by ID in Opt.,Subsc,Notify [VG-1785]
+fix showing count of last interval in charts [VG-1788]

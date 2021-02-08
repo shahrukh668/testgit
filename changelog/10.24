@@ -1,0 +1,3 @@
+fix broken chart report generator (all charts failed) - gui versions >= 10.21 
+extend timeout from 15 seconds to 30 seconds when downloading pcap from remote sniffer and show proper error message if it fails
+proper fix of submenus for chrome 43 (fixes some UI glitches) 

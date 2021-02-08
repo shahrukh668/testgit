@@ -1,0 +1,14 @@
+Upgrade javascript framework to the latest version - GUI is now faster especially all charts (dashboards etc)
+Display hold/unhold in in cdr detail [VS-629]
+Filter live sniffer by port [VG-1282]
+Display Agent and caller name in active calls [VG-1288] [VG-1171]
+suppress empty proxy list in active calls [VG-1285]
+fix php timeout when generating long reports [VG-1291]
+fix issue with utf chars in groupfilters by last sip response [VG-1277]
+fix merging pcap when uploaded via GUI -> tools [VG-1290]
+fix long csv export from SIP register active [VG-1278]
+add special country code 'X1' for North American Non-geographic area codes [VG-1279]
+display a number of the rtcp packets where a fraction lost is nonzero in cdr detail [VS-619]
+fix upgrade window for chrome which can stuck (js timeout)
+increase timeout when upgrading sniffer from GUI [VG-1292]
+fix groups display in user grid

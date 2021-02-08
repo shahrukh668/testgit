@@ -1,0 +1,2 @@
+cache dashboard queries when multiple users are watching the same dashboard
+Allow disabling percentile calculations in CDR groups which takes too much CPU (settings -> server settings) 

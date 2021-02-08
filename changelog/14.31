@@ -1,0 +1,8 @@
+Fix compatibility for php 7 (still beta) [VG-913]
+Now it is possible to set Language for email alerts/reports in configuration.php option LANGUAGE (or  GUI->system configuration->National)
+Fix filter form - if codec was selected - form closed and opened again the GUI stucked [VG-936]
+Fix sharing filter URL when calldate was used [VG-932]
+Fix dashboard panel edit (button was not present for some cases) [VG-928] [VG-929]
+Fix when merging CDRs into a single PCAP file for download, the activity audit window is not displayed, and the download is not included in the audit log [VG-932]
+Increase timeout when upgrading GUI [VG-930]
+Trim string when reading capture rules by domain [VG-937]

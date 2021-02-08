@@ -1,0 +1,9 @@
+fix slow combo loading when browser is zoomed
+fix preview chart in edit reports
+fix margin between bars in chart type bar (columns)
+fix timeshift in charts
+Concurrent Calls - license chart [VG-1330]
+optimize style for chart 'distribution' in cdr group 
+fix issue with tooltip & timeshift in charts [VG-1332]
+increased sensors menu width in spy 
+enable use 'name' field in time shift definition for name of series [VG-1332]

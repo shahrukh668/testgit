@@ -1,0 +1,321 @@
+<html>
+<head>
+<title>ChunkPlayer</title>
+
+<link rel="stylesheet" type="text/css" href="extjs/resources/css/ext-all-gray.css">
+
+<script type="text/javascript" src="extjs/ext-all-debug.js"></script>
+
+<script>
+
+Ext.onReady(function() {
+	var form = new Ext.form.Panel({
+		width: 250,
+		height: 100,
+		border: false,
+		bodyBorder: false,
+		fieldDefaults: {
+			labelWidth: 75
+		},
+		defaultType: 'textfield',
+		items: [{
+			fieldLabel: 'callref',
+			name: 'callref',
+			allowBlank:false
+		},{
+			fieldLabel: 'sensor',
+			name: 'sensor',
+			allowBlank:false,
+			value: 0
+		}],
+		buttons: [{
+			text: 'OK',
+			handler: function() {
+				if(form.getForm().isValid()) {
+					var values = form.getForm().getValues();
+					createChunkPLayer(values.callref, values.sensor);
+				}
+			}
+		}],
+		style: {
+			padding: 10
+		}
+	});
+
+	form.render(document.body);
+});
+
+function createChunkPLayer(callref, sensor) {
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.onreadystatechange = function() {
+		if(xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+			if(xmlhttp.responseText) {
+				var response = JSON.parse(xmlhttp.responseText);
+				if(response) {
+					if(response.error) {
+						Ext.Msg.alert('error', response.error);
+					} else if(response.success) {
+						new ChunkPlayer({
+							url: 'chunkplayer.php?task=READAUDIO&sensor_id='+sensor+'&callref='+callref,
+							sensor: sensor,
+							callreference: callref
+						});
+					} else {
+						Ext.Msg.alert('error', 'unknown error');
+					}
+				}
+			}
+		}
+	}
+	xmlhttp.open('POST',
+		     'chunkplayer.php?task=SPYCALL&sensor_id='+sensor+'&callref='+callref,
+		     true);
+	xmlhttp.send();
+}
+
+Ext.define('ChunkPlayer', {
+	extend: 'Ext.Window',
+	constructor: function(config) {
+		config = Ext.applyIf(config||{}, {
+			width: 520,
+			height: 200,
+			border: false,
+			modal: true,
+			layout: 'fit',
+			items: {
+				id: 'audioVisualizerContainer',
+				xtype: 'panel',
+				html: '<canvas id="audioVisualizer"></canvas>',
+				border: false,
+				bodyStyle: {
+					'background-color': '#E8E8E8'
+				}
+			}
+		});
+		this.callParent([config]);
+		this.on('close', this.onClose, this);
+		this.show();
+
+		if(!window.audioContext) {
+			audioContext = window.webkitAudioContext ?
+					new webkitAudioContext() :
+					new AudioContext();
+			audioAnalyser = audioContext.createAnalyser();
+			audioAnalyser.fftSize = 2048;
+		}
+		this.audioBuffer = audioContext.createBuffer(1, 24000 * 15, 24000);
+		this.activeChunks = [];
+		this.startTime = 0;
+		this.offsetTime = 0;
+		this.audioRequest = new XMLHttpRequest();
+		this.audioRequest.responseType = 'arraybuffer';
+		
+		var me = this;
+		var onAudioLoad = function() { me.onAudioLoad(); }
+		this.audioRequest.addEventListener('load', onAudioLoad, false);
+		this.audioLoad();
+		
+		this.audioVisualizerInit();
+		this._refreshVisualizer = function() {
+			me.audioVisualizerDraw(me.audioVisualizationData());
+			if(me.getEl()) {
+				requestAnimationFrame(me._refreshVisualizer);
+			}
+		};
+		
+		this.firstPlay = true;
+	},
+	onClose: function() {
+		if(this.audioSource) {
+			try {
+				this.audioSource.stop(0);
+			} catch(e) {}
+			this.audioSource.disconnect();
+		}
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open('POST',
+			     'chunkplayer.php?task=SPYCALL&stop=1&sensor_id='+this.sensor+'&callref='+this.callref,
+			     true);
+		xmlhttp.send();
+	},
+	audioLoad: function() {
+		this.audioRequest.open('POST', this.url, true);
+		this.audioRequest.send();
+	},
+	onAudioLoad: function() {
+		if(!this.startTime) {
+			this.startTime = audioContext.currentTime;
+		}
+		if(this.audioRequest.response &&
+		   this.audioRequest.response.byteLength > 2) {
+			this.activeChunks.push(this.audioRequest.response);
+			this.audioSetBuffer();
+		}
+		this.audioPlay();
+		if(!this.audioRequest.response ||
+		   this.audioRequest.response.byteLength <= 2) {
+			var currentBufferTime = Math.max(0, audioContext.currentTime - this.startTime - this.offsetTime);
+			var bufferLength = this.audioBufferLength();
+			if(bufferLength < currentBufferTime + 1) {
+				this.hangedUp = true;
+				this.unmask();
+				this.removeAll();
+				this.add({
+					layout: {
+						type: 'vbox',
+						align: 'center',
+						pack: 'center'
+					},
+					items: {
+						xtype: 'displayfield',
+						value: 'call hanged up',
+						fieldStyle: {
+							'font-weight': 'bold'
+						}
+					},
+					border: false,
+					bodyStyle: {
+						'background-color': '#E8E8E8'
+					}
+				});
+				Ext.defer(function() {
+						if(this.getEl()) {
+							this.close();
+						}
+					},
+					3000,
+					this);
+			}
+		}
+		if(!this.hangedUp) {
+			Ext.defer(function() {
+					if(this.getEl()) {
+						this.audioLoad();
+					}
+				},
+				1000,
+				this);
+		}
+	},
+	audioPlay: function() {
+		if(this.audioSource) {
+			try {
+				this.audioSource.stop(0);
+			} catch(e) {}
+		}
+		var currentBufferTime = Math.max(0, audioContext.currentTime - this.startTime - this.offsetTime);
+		if(this.fillBuffer) {
+			currentBufferTime = Math.max(0, this.fillBufferCurrentTime - this.startTime - this.offsetTime);
+			console.log(this.fillBufferCurrentTime + ' - ' + audioContext.currentTime); 
+		}
+		this.lastCurrentBufferTime = currentBufferTime;
+		console.log('buffer time: ' + currentBufferTime + ' s');
+		console.log('current time: ' + audioContext.currentTime + ' s');
+		if(this.fillBuffer) {
+			return;
+		}
+		this.audioSource = audioContext.createBufferSource();
+		this.audioSource.buffer = this.audioBuffer;
+		this.audioSource.connect(audioAnalyser);
+		this.audioSource.connect(audioContext.destination);
+		if(currentBufferTime < this.audioBufferLength()) {
+			this.audioSource.start(0, currentBufferTime);
+			if(this.firstPlay) {
+				this._refreshVisualizer();
+				this.firstPlay = false;
+			}
+		}
+		this.audioSource.playbackRate.value = 1;
+	},
+	audioSetBuffer: function() {
+		var trimTime = 0;
+		if(!this.fillBuffer && this.lastCurrentBufferTime > 0) {
+			for(var i = 0; i < this.activeChunks.length; i++) {
+				trimTime += this.activeChunks[i].byteLength / 2 / 8000;
+				if(trimTime < this.lastCurrentBufferTime) {
+					this.offsetTime += this.activeChunks[i].byteLength / 2 / 8000;
+					this.activeChunks.splice(0, 1);
+					--i;
+					console.log('splice buffer');
+				} else {
+					break;
+				}
+			}
+		}
+		var counter = 0;
+		var _audioBuffer = this.audioBuffer.getChannelData(0);
+		for(var i = 0; i < this.activeChunks.length; i++) {
+			var _chunkBuffer = new Int16Array(this.activeChunks[i]);
+			for(var j = 0; j < _chunkBuffer.length - 1; j++) {
+				for(var k = 0; k < 3; k++) {
+					_audioBuffer[counter*3 + k] = _chunkBuffer[j] / 65000;
+				}
+				++counter;
+			}
+		}
+		var bufferLength = counter / 8000;
+		console.log('buffer length: ' + bufferLength + ' s');
+		if(bufferLength < (this.fillBuffer ? 6 : 2.5)) {
+			if(!this.fillBuffer) {
+				this.fillBuffer = true;
+				this.fillBufferCurrentTime = audioContext.currentTime;
+				this.mask('waiting for buffer', 'x-mask-loading');
+			}
+		} else if(this.fillBuffer) {
+			this.fillBuffer = false;
+			this.offsetTime += audioContext.currentTime - this.fillBufferCurrentTime;
+			this.unmask();
+		}
+	},
+	audioBufferLength: function() {
+		var length = 0;
+		for(var i = 0; i < this.activeChunks.length; i++) {
+			length += this.activeChunks[i].byteLength / 2 / 8000;
+		}
+		return(length);
+	},
+	audioVisualizerInit: function() {
+		this.audioVisualizerContainer = document.getElementById('audioVisualizerContainer');
+		this.audioVisualizerCanvas = document.getElementById('audioVisualizer');
+		this.audioVisualizerCanvas.width = parseInt(this.audioVisualizerContainer.style.width);
+		this.audioVisualizerCanvas.height = parseInt(this.audioVisualizerContainer.style.height);
+		this.audioVisualizerCtx = this.audioVisualizerCanvas.getContext('2d');
+		this.audioVisualizerGradient = this.audioVisualizerCtx.createLinearGradient(0, 0, 0, this.audioVisualizerCanvas.height);
+		this.audioVisualizerGradient.addColorStop(1, 'green');
+		this.audioVisualizerGradient.addColorStop(0.75, 'green');
+		this.audioVisualizerGradient.addColorStop(0.25, 'green');
+		this.audioVisualizerGradient.addColorStop(0, 'red');
+	},
+	audioVisualizerDraw: function(data) {
+		this.audioVisualizerCtx.clearRect(0, 0, this.audioVisualizerCanvas.width, this.audioVisualizerCanvas.height);
+		this.audioVisualizerCtx.fillStyle = this.audioVisualizerGradient;
+		for(var i = 0, len = data.length; i < Math.min(len, this.audioVisualizerCanvas.width / 3); i += 1) {
+			var value = data[i] / 2;
+			this.audioVisualizerCtx.fillRect(i * 3, this.audioVisualizerCanvas.height - value, 2, this.audioVisualizerCanvas.height);
+		}
+		return this;
+	},
+	audioVisualizationData: function() {
+		var array = new Uint8Array(audioAnalyser.frequencyBinCount);
+		audioAnalyser.getByteFrequencyData(array);
+		return array;
+	}
+});
+
+Ext.override(Ext.Window, {
+	mask: function(msg, msgCls) {
+		if(this.getEl()) {
+			this.getEl().mask(msg,msgCls);
+		}
+	},
+	unmask: function() {
+		if(this.getEl()) {
+			this.getEl().unmask();
+		}
+	}
+});
+
+</script>
+
+</head>
+</html>

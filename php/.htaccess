@@ -1,0 +1,6 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule   (^.*\.wav$)   pcap2wav.php?id=$1&action=wav
+RewriteRule   (^.*\.raw$)   vp2raw.php?id=$1
+RewriteRule   (^.*\.sln$)   vp2raw.php?id=$1
+</IfModule>

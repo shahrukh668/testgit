@@ -1,0 +1,6 @@
+add support for anti fraud realtime concurrent calls tracked by source number (requires sniffer >= 14.1) [VG-719]
+fix import from csv - fix import number fields with borders '="' ... '"' [VG-723]
+fix chart form for multiseries area type (like codecs with applied filter to see only some codecs) [VG-726]
+add option type (type packets) to sip history in cdr and messages [VG-640]
+fix open related cdr records in issue tracker [VG-737]
+if audio decode for long calls fails in firefox ask user to use older player [VG-725]

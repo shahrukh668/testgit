@@ -1,0 +1,3 @@
+add new share filter icon directly in the CDR toolbar
+hyperlink in email reports are now optional in alert definition (default on) 
+fix some new php warnings

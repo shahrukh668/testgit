@@ -1,0 +1,2 @@
+billing: allow importing rules with the same name [VG-536]
+billing: add support for higher precision price in billing

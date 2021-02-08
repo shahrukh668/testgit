@@ -1,0 +1,2 @@
+fix timezone_set php error in some case (when sessino expires) 
+fix 'local sensor' indication in active calls combo 

@@ -1,0 +1,1 @@
+csv export now contains sep=; which makes the csv file compatible for all excel national settings

@@ -1,0 +1,26 @@
+.comboBox-menuList {
+	font: 11px tahoma,arial,helvetica,sans-serif;
+}
+
+.comboBox-menuList th {
+	font-size: 10px;
+	font-style: italic;
+	text-align: center;
+	color: grey;
+}
+.comboBox-menuList td, .menuList-menuList th {
+	padding: 2px 2px;
+}
+
+.comboBox-menuList div {
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+.x-form-table-trigger { 
+	background-image: url(../images/trigger_table.gif);
+}
+
+.x-form-simply-trigger { 
+	background-image: url(../images/trigger_simply.gif);
+}

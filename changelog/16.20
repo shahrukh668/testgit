@@ -1,0 +1,2 @@
+fix fax decoding when call-id starts with dot character [VG-1179]
+update bin/vm which fixes a lot of audio issues when there are multiple RTP streams [VS-569] [VS-571]

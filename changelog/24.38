@@ -1,0 +1,9 @@
+add support for 'and' combination between 'gt' and 'gt_perc' condition in alerts - now it is possible to specify alert only if CDR bad cases are >N number and % at the same time (purpose it to not alert when you set 10% bad MOS score and there were low traffic) [VG-1743]
+show energy levels audio in RTP stream analyser
+update geoip country data [VG-2180]
+fix issue with bin/tshark if sipport range is too long [VG-2178]
+better formating of time in charts on X axe [VG-2158]
+fix load chart-series when editting daily reports / charts [VG-2184]
+
+
+

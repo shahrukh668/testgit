@@ -1,0 +1,5 @@
+new SIP REGISTER alerts (requires sniffer >= 17.0)
+user can change timezone which recalculates time in CDR / dashboard and charts [VG-351]
+enable option 'password is expired' for user in group [VG-971]
+new chart datasource "total minutes" which allows to draw connected minutes in any chart [VG-676]
+remove 'spurious' word from 'sip message text' in sip history (and sip diagram) [VG-974] [VS-476]

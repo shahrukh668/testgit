@@ -1,0 +1,4 @@
+MGCP support beta (sniffer >= 21.0)  [VS-673]
+fix minor firefox issue (background color, wiki border)
+fix tab panels graphics
+in sensors columns are now sortable again [VG-1377]

@@ -1,0 +1,4 @@
+optimize search for id in cdr column filter
+fix geoip data loading 
+allow cdr / message sort callid and custom headers columns
+validate host and port in sensors settings

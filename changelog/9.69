@@ -1,0 +1,10 @@
+make combo caller / called selector in cdr filter more graphically obvious
+add caller / called option for mos, delay, loss, jitter in cdr search form [VG-545]
+timezone in GUI is now possible set to system default which is new default option. 
+add support for new bye code 106 (BYE without RES2XX and RES18X) - sniffer >= 11beta 
+add 'strict' option in cdr search form in find by rtp delay and loss [VS-241]
+add set previous period for 'today' in reports [VG-485]
+fix autodelete user_sensors before deleting record in sensors
+delete also from cdr_next when deleting records from CDR
+fix compatibility with tshark 1.12
+use sip ports 5060-5070 when sniffer is not running and GUI tries to interpret SIP messages in SIP history. 

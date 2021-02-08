@@ -1,0 +1,15 @@
+.svg_painter .movable {
+    cursor: move;
+}
+
+.svg_painter .selectable {
+    cursor: pointer;
+}
+
+.svg_painter text::selection { 
+    background: none; 
+}
+
+.svg_painter tspan::selection { 
+    background: none; 
+}

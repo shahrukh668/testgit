@@ -1,0 +1,8 @@
+use own static tshark & mergecap which are the latest version with our fixed t.30 protocol which fixes FAX decoding. GUI does not depend on system tshark anymore [VG-766]
+fix proper escaping for some parameters, escape some js functions [VG-1172]
+fix set clientOsTimezone (wring time/date in dashboards when mixing timezones) [VG-1177]
+fix save button in settings -> common [VG-1174]
+fix non standard sip port when converting audio (detect port from sniffer) [VS-420]
+fix enable / disable timezone in switch panels
+fix language compatibility
+add missing context help for strict prefixes chackbox in various alerts

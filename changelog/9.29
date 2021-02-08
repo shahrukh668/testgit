@@ -1,0 +1,1 @@
+update to new vm binary which adds support for changing samplerate within one call (only for alaw/ulaw <-> one high rate codec)

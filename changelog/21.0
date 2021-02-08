@@ -1,0 +1,8 @@
+new OPTIONS / SUBSCRIBE / NOTIFY menu (needs sniffer >= 23.0 with enabled sip-* parameters) [VG-45]
+allow disabling sensors in settings [VG-1680]
+experimental dashboard caching feature - enable it in config/configuration.php - define('CHART_NO_CACHE_MINUTES', 15); define('CHART_CACHE_KEEP_EMPTY_END_INTERVALS', true); define('DASHBOARD_CHARTS_ENABLE_USE_ONLY_CACHE', true); define('CHART_USE_SIP_RESPONSES_CODEBOOK', true); define('CHART_MAX_LENGTH_SIP_RESPONSE_TEXT', 14); define('CHART_CACHE_PROCESSES', 6); define('CHART_CACHE_PROCESS_MAX_RUN', 20);
+add api function getShareURL, add api parameters for search legs by cid [VG-1633]
+fix api's permission in listActiveCalls task [VG-1677]
+increase precision in output from bin/charts which fixes slight differences in some calculations in reports and GUI [VG-1669]
+update bin/vm binary to the latest
+

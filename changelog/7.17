@@ -1,0 +1,3 @@
+fix access control for share cdr / message
+fix show custom fields in shared cdr
+fix delay %95,$95 in charts (should be %95, %99)

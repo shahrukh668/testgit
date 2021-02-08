@@ -1,0 +1,4 @@
+fix active calls for some cases [VG-2090]
+use customer_geoip table in spymap for public ips [VG-2091]
+fix crashes in ioncube 
+update vm binary to the latest 

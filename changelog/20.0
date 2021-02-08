@@ -1,0 +1,19 @@
+Two Factor Authentication (2FA) implemented [VG-1509]
+New main menu SIP OPTIONS (requires sniffer >= 22.7) which supports SIP OPTIONS 
+Move MESSAGES above SIP OPTIONS and rename it to SIP MESSAGES 
+enhance layout in User form settings 
+added SIP domain filter in alert 'change register country' [VG-1598]
+added support for view and search / filtering CDR which has SRTP (encrypted RTP) without KEY so its not possible to decrypt (Diffie Helmann key exchange) [VS-786]
+add localization support for SIP REGISTER section
+in active calls do not search substring in callid 
+in CSV exports do not limit number of rows [VG-1595]
+increase timeout when deleting CDR from 5 minutes to 60 minutes 
+update vm binary which fixes out of sync audio in some cases 
+fix sensor configuration when changing settings [VG-1572]
+fix vertical scroller in system configuration section
+fix sniffer auto update feature 
+fix default checkbox in active calls [VS-790]
+fix scrolling in google chrome >= 67 linux version 
+fix email generator where text was unreadable [VG-1601]
+fix last sip response condition in CDR filters where this did not worked: !2,!487 L% [VG-1554]
+fix alert 'time without call' if timezone differs between sensors and GUI [VS-793]

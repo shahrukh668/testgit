@@ -1,0 +1,5 @@
+support domain license key for auto download 
+add hyperlink in alerts / reports for quick alert / report edit 
+fix chmod and error handling when installing wkhtml and phantomjs
+new option in alert for suppress duplicate alerts 
+
