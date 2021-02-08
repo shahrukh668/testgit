@@ -1,0 +1,2 @@
+Speedup login (do not check database structure if it is not needed) 
+Add basic IP/route configuration from GUI for debian/ubuntu/centos for dedicated box purpose 

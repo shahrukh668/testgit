@@ -1,0 +1,2 @@
+fix recent bug in the GUI -> sniffer communication when downloading data from sniffer over TCP
+fix dashboard RRD charts

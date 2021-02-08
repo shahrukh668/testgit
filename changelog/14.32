@@ -1,0 +1,3 @@
+add new RTP source port detection support (sniffer >= 16.1) - show in CDR and add filter (requires sniffer >= 16.1 and db upgrade) [VS-450]
+fix find by ua in registers (>= 14.30) [VG-457]
+fix week start in date picker (by WEEK_START in configuration.php) [VG-941]

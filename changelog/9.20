@@ -1,0 +1,3 @@
+Fix missing RTP in pcap if CDR has only one RTP stream (fixes 9.19)
+Added 2 days file cache for pcap files downloaded and extracted from remote sensors
+Optimize downloading / extracting pcaps from remote sensors (2x faster) 

@@ -1,0 +1,1 @@
+Fix live sniffer IP filter rule - on some installations it refused to set the IP filter. 

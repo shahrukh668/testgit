@@ -1,0 +1,2 @@
+update vm binary which fixes some audio decode or pcap extract
+support amr octet-align=0

@@ -1,0 +1,2 @@
+fix JSON NULL error if active calls contains backslash
+optimize loading upgrade information in sensors 

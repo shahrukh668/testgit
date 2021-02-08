@@ -1,0 +1,5 @@
+Completely redesigned audio player
+- now supports instant playing for long calls (no issues in firefox anymore) 
+- spectrogram included
+- zooming with mouse wheel / buttons 
+- moving wave with mouse 

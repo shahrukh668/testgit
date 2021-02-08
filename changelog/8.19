@@ -1,0 +1,1 @@
+update vm binary which fixes audio out of sync for G723 calls with 60ms packetization and CNG 

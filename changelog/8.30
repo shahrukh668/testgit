@@ -1,0 +1,5 @@
+change fread with select/read which fixes issue when GUI is stucked due to slow TCP / buggy sensor (stucked manager interface)
+keep scripts/custom_login.php in upgrade
+fix some php warnings
+fix php 5.1 compatibility (missing zip class)
+show rrd icon only if supported by the sniffer

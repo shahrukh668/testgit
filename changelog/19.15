@@ -1,0 +1,10 @@
+new individual custom cleaning (in main menu) [VG-1557]
+fix some PHP warnings [VG-1565]
+allow sortable left grid in group panels (in CDR/MESSAGES section) [VG-1567]
+add a possibility to set external script in the Register* alerts. Add a possibility to set variables exported for the external script [VG-1512]
+fix day filter in daily reports (fixes weekly reports) [VG-1576]
+fix reload sniffers combo which can show duplicate sensors names [VG-1569]
+fix configuration.php check after upgrade [VG-1571]
+charts - fix calculation of first interval if php timezone != sensor timezone [VS-785]
+do not send crash report for not current sniffer version and ask user if GUI should upgrade sniffer to the latest if crash is detected
+update bin/bm to the latest

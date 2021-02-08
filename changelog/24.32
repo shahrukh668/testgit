@@ -1,0 +1,2 @@
+Update bin/vm binary to 26.17.1
+do'nt allow to set the second spool in capture rules if DB column doesn't exist.

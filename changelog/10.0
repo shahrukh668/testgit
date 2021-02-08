@@ -1,0 +1,2 @@
+New dynamic custom headers implementation allows to add custom headers without altering sql tables which can take hours or days on big databases. It does not need to configure voipmonitor.conf - sniffer reads them from database now. Old configurations are backward compatible. Custom headers supports regexp extraction of data in custom header now. It requires sniffer >= 11.1
+New alert report 'Internal proxy error' - it searches for calls which did not passed through SIP proxy with some error code. 

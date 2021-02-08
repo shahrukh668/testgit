@@ -1,0 +1,14 @@
+add support for billing aggregation based on domain [VG-1886]
+add support for per-sensor capture rules (sniffer >= 25.9) [VG-686]
+added filtering for calls based on telephone-event in invite / res2xx (Detecting RFC2833 calls) (sniffer >= 25.9) [VS-331]
+speed optimization for SQL queries in function processRows_CDR (added calldate condition) which fixes loading CDR after upgrade to 24.3 for some MySQL/MariDB versions [VG-1936]
+show xml part from SIP message body [VG-1751]
+Added support for SSL/TLS mysql cert key [VG-965]
+network map can be now shared via URL [VG-1934]
+license check will now block only when there will be 3 consecutive days 
+fix show properties window in network map
+fix live audio listen for some cases [VG-1929]
+fix ipv4 binary operations on 32bit PHP [VG-1938]
+fix geoip country table for ipv6 [VG-1775]
+fix FAX PDF when fax-log is too long [VG-1928]
+fix batch download

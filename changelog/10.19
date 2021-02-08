@@ -1,0 +1,6 @@
+Add support for searching and alerting for all SIP responses (sniffer 11.6 required) - CDR filter form contains now new search input box SIP response code and CDR detail contains new column showing all SIP responses. You can now search for all CDR which contains also text response code "Not acceptable here" anywhere during the call although the last SIP response code is 200 OK (answered call). [VS-10]
+Add support for searching and alerting for SIP / Q.850 reason codes (sniffer >= 11.6 required). Reason code is now showed in CDR grid under last SIP response. Groups under CDR can be grouped now by SIP/Q.850 reason codes. New alert for SIP/Q.850 added [VS-45]
+Fix searching all calls in legs by custom header when custom header is created and checked "match in sip by header" in CDR custom headers - do not search only CDR with the same content in that header by also if Call-ID matches this custom header. 
+Add support for SIP NOTIFY in live sniffer (needs sniffer >= 11.6)
+allow disabling HTML 5 audio player in settings -> server settings [VG-487]
+fix pcap download speedup when spool dir contains backslash at the end 

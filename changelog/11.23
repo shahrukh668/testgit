@@ -1,0 +1,9 @@
+Update vm binary which fixes some audio conversion cases 
+Fix dashboard reloading which did not reload anymore when there was network issue between browser and server
+Adjust alert cron time to be more consistent with set period [VG-689]
+Implement new .grap version for upcoming sniffer 14.0
+Allow set width of the legend (left/right) which helps to align some charts if layered above/belove [VG-706]
+fix chart flickering when reloading chart
+fix paused mode in dashboard (pause failed when manual reloading)
+do not flood cron 'another instance of cron is running'
+Restrict user also in live sniffer when user is restricted by ip [VG-707]

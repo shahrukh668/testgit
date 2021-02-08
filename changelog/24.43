@@ -1,0 +1,2 @@
+new CPS daily report and fix CPS calculation in cdr summary report [VG-2176]
+fix daylight saving issue in charts [VG-2216]

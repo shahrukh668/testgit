@@ -1,0 +1,14 @@
+preserve column widths in CDR section (it can be resetted in menu user configuration) [VG-1225]
+added mass sniffer upgrade feature - all sniffers can be upgraded by one click [VG-678]
+update vm binary which fixes some g729 audio sync issues
+geoip city - add support for new structure and update
+add example script for ldap's custom login (scripts/ldap_custom_login_example.php) [VG-1319] 
+fix sip history for call flow with multiple localhost ports [VG-695]
+add table for custemer country prefixes (needs the latest sniffer) [VS-567]
+fix alerts for sip-unregister (it stucks) [VG-1352]
+fix gui timeout on longer operations [VG-1353]
+fix removing all cdr* records when deleteing from cdr [VG-677]
+added loading mask for register state/failed with stop button [VG-1353]
+fix chart approximations when smoothing is enabled [VG-1355]
+fix dsahboard url share parameter when passive charts are enabled (it changes charts from canvas/svg to raster png images which helps offload cpu from web clients) [VG-1356]
+added support for charts localization

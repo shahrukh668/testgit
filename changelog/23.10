@@ -1,0 +1,14 @@
+add chart aggregations to daily reports charts [VS-904]
+reload sensors in parallel on background when doing changes in capture rules to not block users doing mass changes when having many sensors [VG-1872]
+add warning in CDR list when sensor_id does not exist in settings->sensors list [VG-1843]
+add timezone support individual daily reports [VG-1843]
+add filtering by by vlan id in active calls and in live sniffing [VG-1827]
+fix restoring configuration from file for some cases [VG-1838]
+use darkcyan color for MOS silence in cdr grid, use blank format ' / ' instead of '0.0/0.0' for mos [VS-941]
+reload sensors after restoring configuration from file [VG-1867]
+fix uploading pcap when secondary spool is defined [VG-1822]
+fix timeaxis title when exporting dashboard chart via API [VG-1868]
+change time separator in file name in batch download -> use '-' instead of ':'
+change sql searching when caller and called IP is set in CDR filter form and searching by sip proxy at the same time. Before it was {(CALLER==IP1 and CALLED==IP2) or PROXY==IP1 or PROXY==IP2)} now it is: {(CALLER==IP1 and CALLED==IP2) or (PROXY==IP1 and CALLED==IP2) or (CALLER==IP1 and PROXY==IP2)} [VG-1869]
+fix user restriction in live sniffer [VG-1871]
+update bin/vm to the latest version (audio decode fixes) 

@@ -1,0 +1,3 @@
+fix phantomjs loops (charts / dashboards cpu spikes)
+fix get file from spool if use tar and use multiple spool dirs - debugging [VG-852]
+fix store created audio file in local spool - fixes some audio play issues 

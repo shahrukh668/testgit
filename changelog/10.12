@@ -1,0 +1,2 @@
+properly fix compressed .wav 
+add ' in front of csv file to workaround excel SYLK format when opening csv 

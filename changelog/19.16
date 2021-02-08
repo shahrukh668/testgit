@@ -1,0 +1,4 @@
+update to the latest vm/bin which fixes unsynced audio (broken since 19.14)
+fix new custom auto cleaning (settings -> custom cleaning) [VG-1557]
+when duplicating user also duplicated assigned sensors [VG-1583]
+in dashboard set timeout for grids [VG-1581]

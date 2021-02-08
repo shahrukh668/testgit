@@ -1,0 +1,7 @@
+do not show two local sniffers in active calls [VG-609]
+fix svg format in charts
+alerts: add checkbox for percent incident from all CDR so it takes base from all CDR instead of filtered (ignore filter for base calculation) [VG-622]
+alerts: use option maximum lines also for email body and not only for csv attachment 
+add filter for called numbers and destination ip addresses in concurrent calls fraud rule (needs sniffer 11.8) [VG-598]
+in cdr - tab legs by CID fix correlation by last 6 digits [VG-624]
+change mysql column file_cache.parameters from varchar(1000) to text which fixes mysql error for some configurations 

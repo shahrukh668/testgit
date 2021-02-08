@@ -1,0 +1,14 @@
+#!/bin/bash
+
+eval $(ssh-agent)
+
+expect << EOF
+  spawn ssh-add $1
+  expect "Enter passphrase"
+  send "$2\r"
+  expect eof
+EOF
+
+echo "----------"
+
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -l $3 $4 -i $1 $5

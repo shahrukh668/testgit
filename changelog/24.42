@@ -1,0 +1,9 @@
+fix scrolling in some grids in alerts / reports  (also enable sort by every column in alerts and reports) [VG-2202]
+fix alerts stopped working if CDR table was reset [VG-2188]
+fix some geoip data
+increase timeout in active calls grid [VG-2193]
+support license in kubernet docker installations
+audio chunkplayer fix [VG-2211]
+fix searching %pattern in register tel. number filter [VG-2198]
+update NANPA prefixes [VG-2195]
+fix sensors selection in alert 'sensors'

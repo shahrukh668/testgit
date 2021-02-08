@@ -1,0 +1,12 @@
+add 'IP lookup add/edit line' in right-click cdr group-by window context menu (user can easilly name the IP there) [VG-1988]
+added billing test panel in billing settings to test rules / combinations [VG-2019]
+remove delay render when hovering on menu items [VG-2045]
+fix layout issue in report / csv export, add text fields ua, state for REGISTER export [VG-2049]
+allow to close sip-history window with ESC key [VG-2042]
+fix save/load configuration for custom-login users [VG-2054]
+optimize menu for selecting RTP streams [VS-1039]
+fix RTCP charts [VG-2058]
+fix ipv6 support for sip history 
+add support for rtp filters / rtp stream analysis for pcapsplit = no
+add SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED for bin/charts [VS-1042]
+speed optimization in cdr group by last sip response

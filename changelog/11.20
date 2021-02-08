@@ -1,0 +1,2 @@
+- fix negation "!" in IP address field with searching with sip proxy (which is enabled by default) 
+- update vm binary to 12.4.4 which fixes duplicated audio streams when the same RTP port is used (netsapiens and possible others) 

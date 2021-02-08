@@ -1,0 +1,4 @@
+new csv export from actual filtered cdr records which groups calls either by src or dst number and shows number of calls, connected calls and minutes. 
+fix download pcap issue (0b) on some php versions (remove call ob_end_flush)
+allow searching for empty or NULL string in cdr filter number/name by providing "NULL" keyword. 
+fix issue with reloading legend in multiseries charts after time-shift

@@ -1,0 +1,3 @@
+Update vm binary which fixes g729 10ms packetization audio decode
+Add support for native collectd charts in GUI -> Tools -> collectd (collectd must be installed) 
+Add support for new RRD sniffer feature 10.1 GUI -> settings -> sensors -> little chart icon

@@ -1,0 +1,9 @@
+fix share cdr/message with ipv6 ip columns
+rename 'Common settings' to 'Country prefix' [VG-1784]
+fix chart configuration in daily reports - disable datefields from/to [VG-1962]
+fix layout in cdr filter / save template
+modify phone country codes - removed 37 DE (Germany), change 262 to RE (Reunion) [VG-1969]
+fix function saveCallStatistics from run.php
+billing - add resolution to rules for number format (original, normalized, both), add resolution to rules for number type (local, international, both) [VG-1971]
+add ip fragmented filter item in CDR filter, show mark in CDR brief, show fragmented flag in SIP history (needs sniffer 26.6) 
+update vm binary to the 26.6

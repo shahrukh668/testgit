@@ -1,0 +1,3 @@
+allow filtering CDR for 'packet loss percent' in cdr search form [VG-564]
+show missing pcap file in sip history if pcap file is missing [VG-597]
+Added RRD graph for SQL files cache [VS-239] 

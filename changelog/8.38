@@ -1,0 +1,1 @@
+fix G.729 audio decode out of sync in case packetization is not 20ms (for example 30ms) and there is packet loss. 

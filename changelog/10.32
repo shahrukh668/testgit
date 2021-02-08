@@ -1,0 +1,1 @@
+fix all versions >= 10.20 where if silence / clipping columns in alerts were missing (which are for 99% installations) alert rule after editting / creating stored 0 instead of NULL which made all alerts unusable (it was searching for 0 clipping / silence). 

@@ -1,0 +1,2 @@
+fix zero size OGG audio download
+update to fixed vm binary which swaps audio between left and right channels at the end of call is one of the channel is silence

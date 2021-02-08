@@ -1,0 +1,8 @@
+fix leak in PHP session [VG-1333]
+fix multiselect sensors combo 
+fix bar labels in report 'Concurrent Calls - license chart' [VG-1339]
+fix network diagram (color filter, charts, save as pdf) [VG-1341]
+in filter "Last SIP response code" now supports % [VS-664]
+in alert sensor type user must select sensor now [VG-1289]
+modify cdr filter for mos(min) - use minimum from columns f1,f2,adapt instead of mos_min [1323]
+update geoip for new format

@@ -1,0 +1,1 @@
+update vm binary which fixes 'do not end call on 481 transaction does not exist prematurily' so the audio can be still decoded

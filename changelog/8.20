@@ -1,0 +1,3 @@
+fix invalid character at begin JSON.php which caused javascript errors on php 5.1 builds. 
+check writable SPOOLDIR at login
+eliminate duplicate calls in active calls for default local sensor and defined local sensor

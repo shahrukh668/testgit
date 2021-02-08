@@ -1,0 +1,75 @@
+.no-border {
+	border-style: none !important;
+}
+
+.width-1000 {
+	width: 1000 !important;
+}
+
+.vertical-align-middle {
+	vertical-align: middle;
+}
+
+.grid-font {
+	font: normal 11px tahoma,arial,verdana,sans-serif !important;
+}
+
+.grid-font-grey {
+	font: normal 11px tahoma,arial,verdana,sans-serif !important;
+	color: grey;
+}
+
+.menu-item-arrow-right {
+	background: no-repeat right -1px top 6px;
+	background-image: url('../extjs-6.2.0/build/classic/theme-gray/resources/images/menu/default-menu-parent.gif');
+}
+
+.x-tool-wiki {
+	background-image: url(../images/wiki.png) !important;
+}
+
+.wav-player .x-slider-thumb {
+	background-image: url(../images/wav-player-thumb.png);
+}
+
+.zero-styles div {
+	padding: 0px 0px 0px 0px !important;
+	padding-left: 0px !important;
+	background-image: none !important;
+	border: 0px;
+}
+
+.upgrade_red {
+    background-image:url(../images/upgrade_red.png) !important;
+    width: 53px !important;
+    height: 16px !important;
+    background-repeat:no-repeat;
+}
+
+.unselectable {
+    /* For Opera and <= IE9, we need to add unselectable="on" attribute onto each element */
+    /* Check this site for more details: http://help.dottoro.com/lhwdpnva.php */
+    -moz-user-select: none; /* These user-select properties are inheritable, used to prevent text selection */
+    -webkit-user-select: none;
+    -ms-user-select: none; /* From IE10 only */
+    user-select: none; /* Not valid CSS yet, as of July 2012 */
+
+    -webkit-user-drag: none; /* Prevents dragging of images/divs etc */
+    user-drag: none;
+}
+
+div.expander-area-owner {
+    border-style: none !important
+}
+
+.x-panel div.expander-area-panel {
+    border-style: none !important
+}
+
+.main-menu .x-grid-td {
+	cursor: pointer;
+}
+
+.always-show-tooltip {
+	pointer-events: all;
+}

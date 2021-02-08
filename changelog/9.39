@@ -1,0 +1,2 @@
+add support for filtering OPUS, X-OPUS and G722.1 
+fix register pcap download for sniffer 11beta

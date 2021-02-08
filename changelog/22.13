@@ -1,0 +1,2 @@
+add caller/called country into RTP report (using custom column config)[VG-1789]
+fix javascript error in dashboards (fixes not storing dashboard) [VG-1796]

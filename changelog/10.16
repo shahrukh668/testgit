@@ -1,0 +1,6 @@
+allow filter CDR by number of RTP streams (none, any, only 1, >= 2) [VG-333]
+implement proxy MOS degradation special report [VG-587]
+fix dspc condition when only one rule set (>=, <)
+fix link in fraud alerts
+suppress sensor error after call manager command 'flush_tar'
+

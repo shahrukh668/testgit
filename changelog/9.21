@@ -1,0 +1,1 @@
+Fix new file_cache table creation error (fixes 9.20) 

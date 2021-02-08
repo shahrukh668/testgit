@@ -1,0 +1,3 @@
+- fix issue with force index when searchiing for CDR by ID number (very slow searching)
+- set missing email content type in csv attachments in alerts [VG-775]
+- add support for encoded csv fields from listcalls (active calls) - for sniffers > 14.3.5

@@ -1,0 +1,8 @@
+do not hide mouse hover tool tips after 5 seconds [VG-1998]
+show all RTP .graph charts in CDR detail [VG-2005]
+rearrange some OK/save buttons to be more consistent [VG-1999]
+Don't escape password string to allow the usage of the special characters
+Fix slow GUI response when doing SIP merge when many sensors are defined 
+Allow upgrade RTP table within GUI for RTP duration column [VG-2008]
+fix empty direction field in cdr detail -> charts tab [VG-2016]
+fix bin/charts binary used for chart / aggregation calculations (within GUI or crontab) which might failed and when calculations falls back to PHP server is overloaded and aggregations / charts never finished [VG-2038]

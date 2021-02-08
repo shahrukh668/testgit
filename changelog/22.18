@@ -1,0 +1,4 @@
+fix quick filter menu in cdr [VG-1824]
+Add an AD variant of the usage into ldap custom script example.
+fix bin/charts - fix issue with group by ip groups if missing group for ip
+fix potential crash in bin/charts for groups of messages 

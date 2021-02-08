@@ -1,0 +1,10 @@
+add phantomjs for better svg generator which fixes graph glitches in PDF / PNG reports like missing legend 
+add button for copy to clipboard for cdr / message share link
+fix firefox context menu position
+add columns pdd and call-id to csv attachment in alerts
+add last 60d, 90d to time intervals in charts  
+fix 5 minute limit in daily report preview button and add loadmask with stop button for preview / send alerts and reports
+do not abort batch download if there is call without any associated RTP (not connected call without ring RTP) 
+fix date-to filter in titlebar in cdr, message, register which was year-mon-day 00:00:00 instead of year-mon-day 23:59:59
+add new options to combo for select date-from in titlebar in cdr, message, register
+fix bad hwid in case the string contains + or / when installing the GUI

@@ -1,0 +1,3 @@
+Count concurrent calls for the license with more tolerance so all legs are merged into one channel
+fix download pcap from register table if item does not exists anymore 
+Update geoip database

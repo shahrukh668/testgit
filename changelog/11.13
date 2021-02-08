@@ -1,0 +1,8 @@
+Capture rules allows now specify OGG audio format and RTP header (it requires the latest sniffer) [VG-667]
+Fix issue with 'mysql gone away' in case user aborts SQL query in CDR or CDR group
+Fix dashboard collectd type [VG-671]
+Fix custom headers display glitch in settings [VS-298]
+Fix issue with charts binary on centos when mysql host is set to localhost
+fix errors in apache log during upgrade [VG-674]
+Support upgrading sniffer on arm 
+Save CDR ids for alerts: cps, acd, asr so it is possible to filter them in CDR alert filter

@@ -1,0 +1,1 @@
+In CDR detail legs by CID is now searching calls based on last 6 digits in reverse columns which allows to corellate calls like +420123456 and 123456 and it searches for source or destination match [VG-374]

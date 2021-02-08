@@ -1,0 +1,8 @@
+Fix php7 installation instructions [VG-1204]
+Added ISUP SS7 support [VG-1191]
+fix 'Expand SIP branch' in sip history - packet detail [VG-1209]
+fix concurrent requests 
+add users restrictions in active registers [VG-1203]
+do not send hash password in ajax request [VG-1172]
+fix register expire [VG-1195]
+update phantomjs to newer version which fixes png generator 

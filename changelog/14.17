@@ -1,0 +1,5 @@
+Optimize dashboard for MESSAGE type widgets
+bring back merge menu in CDR merge toolbar (pcap button with RTP download etc.) [VG-883]
+Optimize CSV export which timedouts on huge databases 
+fix capture rules indication in registers - for capture by number and for number with zero at begin
+Show loading mask in SIP history so users know that SIP history is loading which can take some time in some conditions [VG-885]

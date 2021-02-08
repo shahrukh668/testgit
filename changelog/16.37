@@ -1,0 +1,10 @@
+Support new sensor server / client mode (sniffer >= 20.0) - www.voipmonitor.org/doc/Sniffing_modes#Multiple_remote_sensors_one_DB.2FGUI_server
+Add 'Billed time' into Duration CDR column (aka connected time)
+use selected timezone when exporting csv in CDR section [VG-1261]
+In active calls add proxy IP addresses (including DNS resolving) [VG-1264]
+remove 3d-rtp charts from dashboards for users without privileges for show it [VG-1256]
+add option tcp.analyze_sequence_numbers:FALSE when parsing SIP/RTP in SIP history tab [VG-1270]
+add call completeLoginRow($row, '1') for custom login (if set id_group) [VG-1262]
+add section 'xml' in window 'HTTP detail' (if body match /<tangle xmlns/) [VG-1268]
+add 'action' for http row in sip history [VG-1268]
+

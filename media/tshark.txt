@@ -1,0 +1,601 @@
+  1   0.000000 10.4.2.10 -> 192.168.1.5 SIP/SDP Request: INVITE sip:572460278@192.168.1.5, with session description
+  2   0.021950 192.168.1.5 -> 10.4.2.10 SIP Status: 100 Trying
+  3   0.025192 192.168.1.5 -> 10.4.2.10 SIP/SDP Status: 200 OK, with session description
+  4   0.026537 10.4.2.10 -> 192.168.1.5 SIP Request: ACK sip:572460278@192.168.1.5:5060
+1299  13.930274 10.4.2.10 -> 192.168.1.5 SIP Request: BYE sip:572460278@192.168.1.5:5060
+1300  13.933990 192.168.1.5 -> 10.4.2.10 SIP Status: 200 OK
+====
+Frame 1 (1257 bytes on wire, 1257 bytes captured)
+    Arrival Time: Mar 25, 2010 15:31:27.623158000
+    [Time delta from previous packet: 0.000000000 seconds]
+    [Time since reference or first frame: 0.000000000 seconds]
+    Frame Number: 1
+    Packet Length: 1257 bytes
+    Capture Length: 1257 bytes
+    [Frame is marked: False]
+    [Protocols in frame: eth:ip:udp:sip:sdp]
+Ethernet II, Src: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d), Dst: IntelCor_16:28:17 (00:15:17:16:28:17)
+    Destination: IntelCor_16:28:17 (00:15:17:16:28:17)
+        Address: IntelCor_16:28:17 (00:15:17:16:28:17)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Source: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        Address: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Type: IP (0x0800)
+Internet Protocol, Src: 10.4.2.10 (10.4.2.10), Dst: 192.168.1.5 (192.168.1.5)
+    Version: 4
+    Header length: 20 bytes
+    Differentiated Services Field: 0x10 (DSCP 0x04: Unknown DSCP; ECN: 0x00)
+        0001 00.. = Differentiated Services Codepoint: Unknown (0x04)
+        .... ..0. = ECN-Capable Transport (ECT): 0
+        .... ...0 = ECN-CE: 0
+    Total Length: 1243
+    Identification: 0x0000 (0)
+    Flags: 0x04 (Don't Fragment)
+        0... = Reserved bit: Not set
+        .1.. = Don't fragment: Set
+        ..0. = More fragments: Not set
+    Fragment offset: 0
+    Time to live: 64
+    Protocol: UDP (0x11)
+    Header checksum: 0x1cbd [correct]
+        [Good: True]
+        [Bad : False]
+    Source: 10.4.2.10 (10.4.2.10)
+    Destination: 192.168.1.5 (192.168.1.5)
+User Datagram Protocol, Src Port: sip (5060), Dst Port: sip (5060)
+    Source port: sip (5060)
+    Destination port: sip (5060)
+    Length: 1223
+    Checksum: 0x1e1e [incorrect, should be 0xf247]
+Session Initiation Protocol
+    Request-Line: INVITE sip:572460278@192.168.1.5 SIP/2.0
+        Method: INVITE
+        [Resent Packet: False]
+    Message Header
+        Record-Route: <sip:10.4.2.10;lr=on;ftag=as17742110>
+        Via: SIP/2.0/UDP 10.4.2.10;branch=z9hG4bK69d.be4f3447.0
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Branch: z9hG4bK69d.be4f3447.0
+        Via: SIP/2.0/UDP 10.4.2.10:5061;branch=z9hG4bK4d2490bf;rport=5061
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Sent-by port: 5061
+            Branch: z9hG4bK4d2490bf
+            RPort: 5061
+        From: "634923983" <sip:634923983@voipmonitor.org>;tag=as17742110
+            SIP Display info: "634923983" 
+            SIP from address: sip:634923983@voipmonitor.org
+            SIP tag: as17742110
+        To: <sip:572460278@10.4.2.10>
+            SIP to address: sip:572460278@10.4.2.10
+        Contact: <sip:634923983@10.4.2.10:5061>
+            Contact Binding: <sip:634923983@10.4.2.10:5061>
+                URI: <sip:634923983@10.4.2.10:5061>
+                    SIP contact address: sip:634923983@10.4.2.10:5061
+        Call-ID: 3dfaf3b4522198a53ec6c6bc00d87e47@voipmonitor.org
+        CSeq: 102 INVITE
+            Sequence Number: 102
+            Method: INVITE
+        User-Agent: LAM VS-AST PBX
+        Max-Forwards: 69
+        Remote-Party-ID: "634923983" <sip:634923983@voipmonitor.org>;privacy=off;screen=yes
+        Date: Thu, 25 Mar 2010 14:31:27 GMT
+        Allow: INVITE, ACK, CANCEL, OPTIONS, BYE, REFER, SUBSCRIBE, NOTIFY
+        Supported: replaces
+        Content-Type: application/sdp
+        Content-Length: 414
+        P-hint: inbound->inbound 
+        P-hint: Route[6]: Rtpproxy 
+    Message body
+        Session Description Protocol
+            Session Description Protocol Version (v): 0
+            Owner/Creator, Session Id (o): root 13676 13676 IN IP4 10.4.2.10
+                Owner Username: root
+                Session ID: 13676
+                Session Version: 13676
+                Owner Network Type: IN
+                Owner Address Type: IP4
+                Owner Address: 10.4.2.10
+            Session Name (s): session
+            Connection Information (c): IN IP4 10.4.2.10
+                Connection Network Type: IN
+                Connection Address Type: IP4
+                Connection Address: 10.4.2.10
+            Time Description, active time (t): 0 0
+                Session Start Time: 0
+                Session Stop Time: 0
+            Media Description, name and address (m): audio 50958 RTP/AVP 8 0 18 111 3 97 101
+                Media Type: audio
+                Media Port: 50958
+                Media Proto: RTP/AVP
+                Media Format: ITU-T G.711 PCMA
+                Media Format: ITU-T G.711 PCMU
+                Media Format: ITU-T G.729
+                Media Format: 111
+                Media Format: GSM 06.10
+                Media Format: 97
+                Media Format: 101
+            Media Attribute (a): rtpmap:8 PCMA/8000
+                Media Attribute Fieldname: rtpmap
+                Media Format: 8
+                MIME Type: PCMA
+            Media Attribute (a): rtpmap:0 PCMU/8000
+                Media Attribute Fieldname: rtpmap
+                Media Format: 0
+                MIME Type: PCMU
+            Media Attribute (a): rtpmap:18 G729/8000
+                Media Attribute Fieldname: rtpmap
+                Media Format: 18
+                MIME Type: G729
+            Media Attribute (a): fmtp:18 annexb=no
+                Media Attribute Fieldname: fmtp
+                Media Format: 18 [G729]
+                Media format specific parameters: annexb=no
+            Media Attribute (a): rtpmap:111 G726-32/8000
+                Media Attribute Fieldname: rtpmap
+                Media Format: 111
+                MIME Type: G726-32
+            Media Attribute (a): rtpmap:3 GSM/8000
+                Media Attribute Fieldname: rtpmap
+                Media Format: 3
+                MIME Type: GSM
+            Media Attribute (a): rtpmap:97 iLBC/8000
+                Media Attribute Fieldname: rtpmap
+                Media Format: 97
+                MIME Type: iLBC
+            Media Attribute (a): fmtp:97 mode=30
+                Media Attribute Fieldname: fmtp
+                Media Format: 97 [iLBC]
+                Media format specific parameters: mode=30
+            Media Attribute (a): rtpmap:101 telephone-event/8000
+                Media Attribute Fieldname: rtpmap
+                Media Format: 101
+                MIME Type: telephone-event
+            Media Attribute (a): fmtp:101 0-16
+                Media Attribute Fieldname: fmtp
+                Media Format: 101 [telephone-event]
+                Media format specific parameters: 0-16
+            Media Attribute (a): silenceSupp:off - - - -
+                Media Attribute Fieldname: silenceSupp
+                Media Attribute Value: off - - - -
+            Media Attribute (a): ptime:20
+                Media Attribute Fieldname: ptime
+                Media Attribute Value: 20
+            Media Attribute (a): sendrecv
+
+Frame 2 (531 bytes on wire, 531 bytes captured)
+    Arrival Time: Mar 25, 2010 15:31:27.645108000
+    [Time delta from previous packet: 0.021950000 seconds]
+    [Time since reference or first frame: 0.021950000 seconds]
+    Frame Number: 2
+    Packet Length: 531 bytes
+    Capture Length: 531 bytes
+    [Frame is marked: False]
+    [Protocols in frame: eth:ip:udp:sip]
+Ethernet II, Src: IntelCor_16:28:17 (00:15:17:16:28:17), Dst: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+    Destination: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        Address: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Source: IntelCor_16:28:17 (00:15:17:16:28:17)
+        Address: IntelCor_16:28:17 (00:15:17:16:28:17)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Type: IP (0x0800)
+Internet Protocol, Src: 192.168.1.5 (192.168.1.5), Dst: 10.4.2.10 (10.4.2.10)
+    Version: 4
+    Header length: 20 bytes
+    Differentiated Services Field: 0x10 (DSCP 0x04: Unknown DSCP; ECN: 0x00)
+        0001 00.. = Differentiated Services Codepoint: Unknown (0x04)
+        .... ..0. = ECN-Capable Transport (ECT): 0
+        .... ...0 = ECN-CE: 0
+    Total Length: 517
+    Identification: 0x9154 (37204)
+    Flags: 0x00
+        0... = Reserved bit: Not set
+        .0.. = Don't fragment: Not set
+        ..0. = More fragments: Not set
+    Fragment offset: 0
+    Time to live: 59
+    Protocol: UDP (0x11)
+    Header checksum: 0xd33e [correct]
+        [Good: True]
+        [Bad : False]
+    Source: 192.168.1.5 (192.168.1.5)
+    Destination: 10.4.2.10 (10.4.2.10)
+User Datagram Protocol, Src Port: sip (5060), Dst Port: sip (5060)
+    Source port: sip (5060)
+    Destination port: sip (5060)
+    Length: 497
+    Checksum: 0x9d2d [correct]
+Session Initiation Protocol
+    Status-Line: SIP/2.0 100 Trying
+        Status-Code: 100
+        [Resent Packet: False]
+    Message Header
+        Via: SIP/2.0/UDP 10.4.2.10;branch=z9hG4bK69d.be4f3447.0;received=10.4.2.10
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Branch: z9hG4bK69d.be4f3447.0
+            Received: 10.4.2.10
+        Via: SIP/2.0/UDP 10.4.2.10:5061;branch=z9hG4bK4d2490bf;rport=5061
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Sent-by port: 5061
+            Branch: z9hG4bK4d2490bf
+            RPort: 5061
+        From: "634923983" <sip:634923983@voipmonitor.org>;tag=as17742110
+            SIP Display info: "634923983" 
+            SIP from address: sip:634923983@voipmonitor.org
+            SIP tag: as17742110
+        To: <sip:572460278@10.4.2.10>
+            SIP to address: sip:572460278@10.4.2.10
+        Call-ID: 3dfaf3b4522198a53ec6c6bc00d87e47@voipmonitor.org
+        CSeq: 102 INVITE
+            Sequence Number: 102
+            Method: INVITE
+        User-Agent: LAM PBX
+        Allow: INVITE, ACK, CANCEL, OPTIONS, BYE, REFER, SUBSCRIBE, NOTIFY
+        Contact: <sip:572460278@192.168.1.5>
+            Contact Binding: <sip:572460278@192.168.1.5>
+                URI: <sip:572460278@192.168.1.5>
+                    SIP contact address: sip:572460278@192.168.1.5
+        Content-Length: 0
+
+Frame 3 (793 bytes on wire, 793 bytes captured)
+    Arrival Time: Mar 25, 2010 15:31:27.648350000
+    [Time delta from previous packet: 0.003242000 seconds]
+    [Time since reference or first frame: 0.025192000 seconds]
+    Frame Number: 3
+    Packet Length: 793 bytes
+    Capture Length: 793 bytes
+    [Frame is marked: False]
+    [Protocols in frame: eth:ip:udp:sip:sdp]
+Ethernet II, Src: IntelCor_16:28:17 (00:15:17:16:28:17), Dst: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+    Destination: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        Address: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Source: IntelCor_16:28:17 (00:15:17:16:28:17)
+        Address: IntelCor_16:28:17 (00:15:17:16:28:17)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Type: IP (0x0800)
+Internet Protocol, Src: 192.168.1.5 (192.168.1.5), Dst: 10.4.2.10 (10.4.2.10)
+    Version: 4
+    Header length: 20 bytes
+    Differentiated Services Field: 0x10 (DSCP 0x04: Unknown DSCP; ECN: 0x00)
+        0001 00.. = Differentiated Services Codepoint: Unknown (0x04)
+        .... ..0. = ECN-Capable Transport (ECT): 0
+        .... ...0 = ECN-CE: 0
+    Total Length: 779
+    Identification: 0x9155 (37205)
+    Flags: 0x00
+        0... = Reserved bit: Not set
+        .0.. = Don't fragment: Not set
+        ..0. = More fragments: Not set
+    Fragment offset: 0
+    Time to live: 59
+    Protocol: UDP (0x11)
+    Header checksum: 0xd237 [correct]
+        [Good: True]
+        [Bad : False]
+    Source: 192.168.1.5 (192.168.1.5)
+    Destination: 10.4.2.10 (10.4.2.10)
+User Datagram Protocol, Src Port: sip (5060), Dst Port: sip (5060)
+    Source port: sip (5060)
+    Destination port: sip (5060)
+    Length: 759
+    Checksum: 0x0982 [correct]
+Session Initiation Protocol
+    Status-Line: SIP/2.0 200 OK
+        Status-Code: 200
+        [Resent Packet: False]
+    Message Header
+        Via: SIP/2.0/UDP 10.4.2.10;branch=z9hG4bK69d.be4f3447.0;received=10.4.2.10
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Branch: z9hG4bK69d.be4f3447.0
+            Received: 10.4.2.10
+        Via: SIP/2.0/UDP 10.4.2.10:5061;branch=z9hG4bK4d2490bf;rport=5061
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Sent-by port: 5061
+            Branch: z9hG4bK4d2490bf
+            RPort: 5061
+        Record-Route: <sip:10.4.2.10;lr=on;ftag=as17742110>
+        From: "634923983" <sip:634923983@voipmonitor.org>;tag=as17742110
+            SIP Display info: "634923983" 
+            SIP from address: sip:634923983@voipmonitor.org
+            SIP tag: as17742110
+        To: <sip:572460278@10.4.2.10>;tag=as3c2e2c87
+            SIP to address: sip:572460278@10.4.2.10
+            SIP tag: as3c2e2c87
+        Call-ID: 3dfaf3b4522198a53ec6c6bc00d87e47@voipmonitor.org
+        CSeq: 102 INVITE
+            Sequence Number: 102
+            Method: INVITE
+        User-Agent: LAM PBX
+        Allow: INVITE, ACK, CANCEL, OPTIONS, BYE, REFER, SUBSCRIBE, NOTIFY
+        Contact: <sip:572460278@192.168.1.5>
+            Contact Binding: <sip:572460278@192.168.1.5>
+                URI: <sip:572460278@192.168.1.5>
+                    SIP contact address: sip:572460278@192.168.1.5
+        Content-Type: application/sdp
+        Content-Length: 160
+    Message body
+        Session Description Protocol
+            Session Description Protocol Version (v): 0
+            Owner/Creator, Session Id (o): root 2192 2192 IN IP4 192.168.1.5
+                Owner Username: root
+                Session ID: 2192
+                Session Version: 2192
+                Owner Network Type: IN
+                Owner Address Type: IP4
+                Owner Address: 192.168.1.5
+            Session Name (s): session
+            Connection Information (c): IN IP4 192.168.1.5
+                Connection Network Type: IN
+                Connection Address Type: IP4
+                Connection Address: 192.168.1.5
+            Time Description, active time (t): 0 0
+                Session Start Time: 0
+                Session Stop Time: 0
+            Media Description, name and address (m): audio 15174 RTP/AVP 8
+                Media Type: audio
+                Media Port: 15174
+                Media Proto: RTP/AVP
+                Media Format: ITU-T G.711 PCMA
+            Media Attribute (a): rtpmap:8 PCMA/8000
+                Media Attribute Fieldname: rtpmap
+                Media Format: 8
+                MIME Type: PCMA
+            Media Attribute (a): silenceSupp:off - - - -
+                Media Attribute Fieldname: silenceSupp
+                Media Attribute Value: off - - - -
+
+Frame 4 (642 bytes on wire, 642 bytes captured)
+    Arrival Time: Mar 25, 2010 15:31:27.649695000
+    [Time delta from previous packet: 0.001345000 seconds]
+    [Time since reference or first frame: 0.026537000 seconds]
+    Frame Number: 4
+    Packet Length: 642 bytes
+    Capture Length: 642 bytes
+    [Frame is marked: False]
+    [Protocols in frame: eth:ip:udp:sip]
+Ethernet II, Src: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d), Dst: IntelCor_16:28:17 (00:15:17:16:28:17)
+    Destination: IntelCor_16:28:17 (00:15:17:16:28:17)
+        Address: IntelCor_16:28:17 (00:15:17:16:28:17)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Source: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        Address: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Type: IP (0x0800)
+Internet Protocol, Src: 10.4.2.10 (10.4.2.10), Dst: 192.168.1.5 (192.168.1.5)
+    Version: 4
+    Header length: 20 bytes
+    Differentiated Services Field: 0x10 (DSCP 0x04: Unknown DSCP; ECN: 0x00)
+        0001 00.. = Differentiated Services Codepoint: Unknown (0x04)
+        .... ..0. = ECN-Capable Transport (ECT): 0
+        .... ...0 = ECN-CE: 0
+    Total Length: 628
+    Identification: 0x0000 (0)
+    Flags: 0x04 (Don't Fragment)
+        0... = Reserved bit: Not set
+        .1.. = Don't fragment: Set
+        ..0. = More fragments: Not set
+    Fragment offset: 0
+    Time to live: 64
+    Protocol: UDP (0x11)
+    Header checksum: 0x1f24 [correct]
+        [Good: True]
+        [Bad : False]
+    Source: 10.4.2.10 (10.4.2.10)
+    Destination: 192.168.1.5 (192.168.1.5)
+User Datagram Protocol, Src Port: sip (5060), Dst Port: sip (5060)
+    Source port: sip (5060)
+    Destination port: sip (5060)
+    Length: 608
+    Checksum: 0x1bb7 [incorrect, should be 0x8665]
+Session Initiation Protocol
+    Request-Line: ACK sip:572460278@192.168.1.5:5060 SIP/2.0
+        Method: ACK
+        [Resent Packet: False]
+    Message Header
+        Record-Route: <sip:10.4.2.10;lr=on;ftag=as17742110>
+        Via: SIP/2.0/UDP 10.4.2.10;branch=z9hG4bK69d.be4f3447.2
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Branch: z9hG4bK69d.be4f3447.2
+        Via: SIP/2.0/UDP 10.4.2.10:5061;branch=z9hG4bK0099b0f6;rport=5061
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Sent-by port: 5061
+            Branch: z9hG4bK0099b0f6
+            RPort: 5061
+        From: "634923983" <sip:634923983@voipmonitor.org>;tag=as17742110
+            SIP Display info: "634923983" 
+            SIP from address: sip:634923983@voipmonitor.org
+            SIP tag: as17742110
+        To: <sip:572460278@10.4.2.10>;tag=as3c2e2c87
+            SIP to address: sip:572460278@10.4.2.10
+            SIP tag: as3c2e2c87
+        Contact: <sip:634923983@10.4.2.10:5061>
+            Contact Binding: <sip:634923983@10.4.2.10:5061>
+                URI: <sip:634923983@10.4.2.10:5061>
+                    SIP contact address: sip:634923983@10.4.2.10:5061
+        Call-ID: 3dfaf3b4522198a53ec6c6bc00d87e47@voipmonitor.org
+        CSeq: 102 ACK
+            Sequence Number: 102
+            Method: ACK
+        User-Agent: LAM VS-AST PBX
+        Max-Forwards: 69
+        Remote-Party-ID: "634923983" <sip:634923983@voipmonitor.org>;privacy=off;screen=yes
+        Content-Length: 0
+
+Frame 1299 (669 bytes on wire, 669 bytes captured)
+    Arrival Time: Mar 25, 2010 15:31:41.553432000
+    [Time delta from previous packet: 0.004029000 seconds]
+    [Time since reference or first frame: 13.930274000 seconds]
+    Frame Number: 1299
+    Packet Length: 669 bytes
+    Capture Length: 669 bytes
+    [Frame is marked: False]
+    [Protocols in frame: eth:ip:udp:sip]
+Ethernet II, Src: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d), Dst: IntelCor_16:28:17 (00:15:17:16:28:17)
+    Destination: IntelCor_16:28:17 (00:15:17:16:28:17)
+        Address: IntelCor_16:28:17 (00:15:17:16:28:17)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Source: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        Address: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Type: IP (0x0800)
+Internet Protocol, Src: 10.4.2.10 (10.4.2.10), Dst: 192.168.1.5 (192.168.1.5)
+    Version: 4
+    Header length: 20 bytes
+    Differentiated Services Field: 0x10 (DSCP 0x04: Unknown DSCP; ECN: 0x00)
+        0001 00.. = Differentiated Services Codepoint: Unknown (0x04)
+        .... ..0. = ECN-Capable Transport (ECT): 0
+        .... ...0 = ECN-CE: 0
+    Total Length: 655
+    Identification: 0x0000 (0)
+    Flags: 0x04 (Don't Fragment)
+        0... = Reserved bit: Not set
+        .1.. = Don't fragment: Set
+        ..0. = More fragments: Not set
+    Fragment offset: 0
+    Time to live: 64
+    Protocol: UDP (0x11)
+    Header checksum: 0x1f09 [correct]
+        [Good: True]
+        [Bad : False]
+    Source: 10.4.2.10 (10.4.2.10)
+    Destination: 192.168.1.5 (192.168.1.5)
+User Datagram Protocol, Src Port: sip (5060), Dst Port: sip (5060)
+    Source port: sip (5060)
+    Destination port: sip (5060)
+    Length: 635
+    Checksum: 0x1bd2 [incorrect, should be 0x11ba]
+Session Initiation Protocol
+    Request-Line: BYE sip:572460278@192.168.1.5:5060 SIP/2.0
+        Method: BYE
+        [Resent Packet: False]
+    Message Header
+        Record-Route: <sip:10.4.2.10;lr=on;ftag=as17742110>
+        Via: SIP/2.0/UDP 10.4.2.10;branch=z9hG4bK79d.dbe90546.0
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Branch: z9hG4bK79d.dbe90546.0
+        Via: SIP/2.0/UDP 10.4.2.10:5061;branch=z9hG4bK56113e49;rport=5061
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Sent-by port: 5061
+            Branch: z9hG4bK56113e49
+            RPort: 5061
+        From: "634923983" <sip:634923983@voipmonitor.org>;tag=as17742110
+            SIP Display info: "634923983" 
+            SIP from address: sip:634923983@voipmonitor.org
+            SIP tag: as17742110
+        To: <sip:572460278@10.4.2.10>;tag=as3c2e2c87
+            SIP to address: sip:572460278@10.4.2.10
+            SIP tag: as3c2e2c87
+        Call-ID: 3dfaf3b4522198a53ec6c6bc00d87e47@voipmonitor.org
+        CSeq: 103 BYE
+            Sequence Number: 103
+            Method: BYE
+        User-Agent: LAM VS-AST PBX
+        Max-Forwards: 69
+        Remote-Party-ID: "634923983" <sip:634923983@voipmonitor.org>;privacy=off;screen=yes
+        X-Asterisk-HangupCause: Normal Clearing
+        X-Asterisk-HangupCauseCode: 16
+        Content-Length: 0
+
+Frame 1300 (597 bytes on wire, 597 bytes captured)
+    Arrival Time: Mar 25, 2010 15:31:41.557148000
+    [Time delta from previous packet: 0.003716000 seconds]
+    [Time since reference or first frame: 13.933990000 seconds]
+    Frame Number: 1300
+    Packet Length: 597 bytes
+    Capture Length: 597 bytes
+    [Frame is marked: False]
+    [Protocols in frame: eth:ip:udp:sip]
+Ethernet II, Src: IntelCor_16:28:17 (00:15:17:16:28:17), Dst: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+    Destination: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        Address: IntelCor_8d:e7:3d (00:15:17:8d:e7:3d)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Source: IntelCor_16:28:17 (00:15:17:16:28:17)
+        Address: IntelCor_16:28:17 (00:15:17:16:28:17)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+        .... ..0. .... .... .... .... = LG bit: Globally unique address (factory default)
+    Type: IP (0x0800)
+Internet Protocol, Src: 192.168.1.5 (192.168.1.5), Dst: 10.4.2.10 (10.4.2.10)
+    Version: 4
+    Header length: 20 bytes
+    Differentiated Services Field: 0x10 (DSCP 0x04: Unknown DSCP; ECN: 0x00)
+        0001 00.. = Differentiated Services Codepoint: Unknown (0x04)
+        .... ..0. = ECN-Capable Transport (ECT): 0
+        .... ...0 = ECN-CE: 0
+    Total Length: 583
+    Identification: 0x9157 (37207)
+    Flags: 0x00
+        0... = Reserved bit: Not set
+        .0.. = Don't fragment: Not set
+        ..0. = More fragments: Not set
+    Fragment offset: 0
+    Time to live: 59
+    Protocol: UDP (0x11)
+    Header checksum: 0xd2f9 [correct]
+        [Good: True]
+        [Bad : False]
+    Source: 192.168.1.5 (192.168.1.5)
+    Destination: 10.4.2.10 (10.4.2.10)
+User Datagram Protocol, Src Port: sip (5060), Dst Port: sip (5060)
+    Source port: sip (5060)
+    Destination port: sip (5060)
+    Length: 563
+    Checksum: 0x3dee [correct]
+Session Initiation Protocol
+    Status-Line: SIP/2.0 200 OK
+        Status-Code: 200
+        [Resent Packet: False]
+    Message Header
+        Via: SIP/2.0/UDP 10.4.2.10;branch=z9hG4bK79d.dbe90546.0;received=10.4.2.10
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Branch: z9hG4bK79d.dbe90546.0
+            Received: 10.4.2.10
+        Via: SIP/2.0/UDP 10.4.2.10:5061;branch=z9hG4bK56113e49;rport=5061
+            Transport: UDP
+            Sent-by Address: 10.4.2.10
+            Sent-by port: 5061
+            Branch: z9hG4bK56113e49
+            RPort: 5061
+        Record-Route: <sip:10.4.2.10;lr=on;ftag=as17742110>
+        From: "634923983" <sip:634923983@voipmonitor.org>;tag=as17742110
+            SIP Display info: "634923983" 
+            SIP from address: sip:634923983@voipmonitor.org
+            SIP tag: as17742110
+        To: <sip:572460278@10.4.2.10>;tag=as3c2e2c87
+            SIP to address: sip:572460278@10.4.2.10
+            SIP tag: as3c2e2c87
+        Call-ID: 3dfaf3b4522198a53ec6c6bc00d87e47@voipmonitor.org
+        CSeq: 103 BYE
+            Sequence Number: 103
+            Method: BYE
+        User-Agent: LAM PBX
+        Allow: INVITE, ACK, CANCEL, OPTIONS, BYE, REFER, SUBSCRIBE, NOTIFY
+        Contact: <sip:572460278@192.168.1.5>
+            Contact Binding: <sip:572460278@192.168.1.5>
+                URI: <sip:572460278@192.168.1.5>
+                    SIP contact address: sip:572460278@192.168.1.5
+        Content-Length: 0
+

@@ -1,0 +1,2 @@
+added new daily report type - concurrent calls which will show maximum number of concurrent calls in table (+ csv export) [VG-816]
+fix charts / billing floating point precision

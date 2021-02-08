@@ -1,0 +1,30 @@
+<style>
+   td { vertical-align: top; }
+</style>
+
+<table border="0" style="font-size: 10pt;">
+<tr>
+   <td>created&nbsp;at:</td>
+   <td>{:created_at}</td>
+<tr></tr>
+   <td>created&nbsp;by:</td>
+   <td>{:created_name}</td>
+<tr></tr>
+   <td>assigned&nbsp;to:</td>
+   <td>{:assigned_name}</td>
+<tr></tr>
+   <td>title:</td>
+   <td>{:title}</td>
+<tr></tr>
+   <td>description:</td>
+   <td>{:description}</td>
+<tr></tr>
+   <td>priority:</td>
+   <td>{:priority}</td>
+<tr></tr>
+   <td>status:</td>
+   <td>{:status_name}</td>
+<tr></tr>
+   <td>category:</td>
+   <td>{:category_name}</td>
+</table>

@@ -1,0 +1,4 @@
+fix negation and network notation in SIP proxy filter [VG-1889]
+fix cdr filter rendering for safari [VG-1895]
+fix CDR summery report type:number of calls [VG-1893]
+add group by rtp ip in grid-reports 'Call summary' and 'QOS report' [VG-1901]

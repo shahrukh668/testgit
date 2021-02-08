@@ -1,0 +1,2 @@
+enhance gui backup settings - now it includes alerts_cdr,alerts_message,alerts_sended,audit_log,audit_log_relation_cdr,daily_reports_cdr,daily_reports_message,daily_reports_sended)
+update vm to the latest which fixes some audio decode

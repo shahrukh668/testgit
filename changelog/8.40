@@ -1,0 +1,1 @@
+do not include ethernet MAC address into hardware id license to make it more compatible for virtual environments. 

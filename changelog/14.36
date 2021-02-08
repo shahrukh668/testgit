@@ -1,0 +1,7 @@
+Fix critical security bug (everyone should upgrade) 
+complete concatenated message in message detail [VS-340]
+do not allow user to share RTP to share / cloud if RTP is disabled for that user [VG-967]
+implement password rules for user [VG-807]
+Do not show license problem (and number of channels) for non admin users [VG-457]
+Add trend line for charts (checkbox) [VG-472]
+Reload sensors alerts when IP group is changed and used in fraud concurrent calls [VS-475]

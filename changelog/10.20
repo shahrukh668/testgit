@@ -1,0 +1,9 @@
+implement workaround for buggy mysql versions (5.5.40) which crashed when doing some ALTER commands (upgrading your mysql version to at least 5.5.43 is recommended anyway) 
+Add support for silence detection and clipping detection (since sniffer 11) [VS-208]
+fix proxy degradation report
+user can now have disabled CDR section [VG-596]
+allow canceling and show timer when generating charts 
+fix chrome issues when showing charts / rtcp fix tools in charts (flickering) fix select active rtcp tab 
+add RTCP charts (if present) in CDR detail under .graph charts [VG-526]
+
+

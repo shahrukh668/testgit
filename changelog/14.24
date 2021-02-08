@@ -1,0 +1,2 @@
+When playing audio allow user to remove individual RTP streams (user will be able to listen to specific legs in case one call has more RTP streams) [VG-896]
+remove force index (calldate) from all queries which fixes some exceptionally long queries) [VG-902]

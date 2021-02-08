@@ -1,0 +1,3 @@
+fix raster image conversion from svg - passive charts in dashboard and images in reports 
+fix pcap download for simple cdr view [VG-1441]
+allow customer geoip in cdr / detail / map [VG-1439]

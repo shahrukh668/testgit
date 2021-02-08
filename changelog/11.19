@@ -1,0 +1,2 @@
+Fix filtering in active calls - caller/called number prefix 
+Fix showing / loading number in "Incidents" input box (empty string no matter what user stored) 

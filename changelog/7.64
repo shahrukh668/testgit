@@ -1,0 +1,4 @@
+optimize dashboard sql query and remove unix_timestamp 
+add parameter onlyConnected to php/api.php for function getVoipCalls
+add time intervals last 30,60,90 days to configure chart in daily report
+redesign filter button 

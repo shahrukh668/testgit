@@ -1,0 +1,3 @@
+change NER last-sip-response filter to '2XX 3XX 4XX 603' (this can be changed in GUI settings NER_LSR_FILTER) [VG-868]
+Added support for MP4A-LATM [VS-907]
+debug log generator for voipmonitor support (tools->generate debug log) [VG-1808]

@@ -1,0 +1,7 @@
+fix download audio from local sensor if spool contains audio file only (no sip/rtp pcaps)
+Add configuration charts form in CDR detail charts tab and CDR group charts
+hide undocked dashboard windows if user switches to another panel
+fix mysql errors when there is no user defined in GUI
+better clean php session when using pcap merge 
+fix concurent calls calculations for mysql 5.7
+run.php checkLicense (add parameter -v)

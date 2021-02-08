@@ -1,0 +1,2 @@
+Fix audio out of sync for opus/silk/g722
+Speedup login page (do not attempt to upgrade database every time)

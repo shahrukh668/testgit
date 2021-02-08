@@ -1,0 +1,3 @@
+fix loading sensor and sensor alerts for large databases
+fix loading pcap from remote sensor (network code optimization) 
+Fix PHP Warning:  Use of undefined constant VERSION_MINOR

@@ -1,0 +1,3 @@
+add support for keyboard input in quick search fields [VG-1974]
+allow to delete user when user created cdr note [VG-1977]
+fix 24.11 which might broken configuration.php

@@ -1,0 +1,3 @@
+new automated licensing menu
+fix mergecap issue for new sniffers which lead to pcap download / wav stuck on new wireshark 1.10 versions
+fix sharing pcap to share.voipmonitor.org

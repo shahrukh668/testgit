@@ -1,0 +1,7 @@
+New CDR summary report in daily reports generates CDR grid summary table including the new total minutes counter (for example if you want to show how much minutes do you route to various destinations or the top most customers sorted by total minutes and other metrics like loss / jitter etc.) [VS-245]
+New total minutes called data source in CDR summary in dashboard and in CDR group panel 
+Add last days parameter for all reports which now allows to generate report for last X days instead of last day (except charts which already have this feature) 
+Fix sip history in case there are http packets 
+In user restriction add new checkbox which changes condition from AND to OR which is neccessary when you want to restrict user based on tel. numbers OR domains instead of AND [VG-582]
+
+

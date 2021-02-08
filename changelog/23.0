@@ -1,0 +1,5 @@
+ipv6 support (sniffer >= 25.0)
+Fix country flags in CDR view [VG-1844]
+hide rtp statistics + download & play audio if a/b playload is not set [VS-927]
+fix delete network map for users [VG-1840]
+fix csv import Settings->Common Settings->country prefixes/rules [VG-1839]

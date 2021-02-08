@@ -1,0 +1,4 @@
+Add new mos call quality chart into CDR group and charts 
+fix create new dashboard via button 'new dashboard' [VG-746]
+fix export csv in qos report [VG-747]
+fix SIP responses - typical (it showed no data)

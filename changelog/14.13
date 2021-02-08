@@ -1,0 +1,3 @@
+fix datetime condition in sql which can overload the database
+fix warning if /etc/localtime does not exists
+

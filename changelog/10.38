@@ -1,0 +1,15 @@
+alerts: for each alert is now possible to set in what day and hours is activated (handy for alerts which are valid only during bussiness hours) [VG-610]
+alerts: add new alert type 'no calls alert' which is used to get alert if there is no calls within N minutes. [VG-610] 
+alerts: add new fraud alert type - sequential which alerts if there are N number of calls during X minutes to the same number from the same IP address (requires sniffer >= 11.9) [VG-557]
+charts: add optional horizontal mark line with specific value. This is usefull for example in case you want to see if your concurrent calls are over 100 or below 100 [VG-574]
+charts: change naming for data series in chart configurations to end confusion about what is concurrent calls and what is number of calls made [VG-603]
+dashboard: add RTCP metrics for custom grid [VG-581]
+dashboard: add new panel type custom CDR grid - by RTP IP which groups by RTP IP (currently there were only by SIP IP and by SIP response) [VG-589]
+dashboard: add parameter 'interval offset' which hides (shifts) values from right to left for N seconds (this is usefull in case user do not want to be confused with lowering chart in right edge due to the fact that the dashboard shows only completed calls and not live calls which causes confusion when the chart is slowly falling to zero) [VG-591]
+user settings: allow hide change user password for non admin users (checkbox in user definition) [VG-588]
+cdr filter form: set 'include proxy' checkbox in cdr filter form to checked by default [VG-639]
+API: add parameter suppress_results which suppress_results for api task listing (php/model/sql.php?task=LISTING&module=CDR&suppress_results=1) to get only total CDR and not results [VG-531]
+fix: audio web player for some browser / audio settings on macos
+fix: php warning in alerts php cron script - missing parameter in call getCountAllAlertEvalCdr
+fix: do not save group in custom headers if custom headers does not exists
+fix: fix some alter table alerts during installation

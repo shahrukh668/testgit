@@ -1,0 +1,3 @@
+add support for 'user settings / user configuration' in custom-login mode [VG-2190]
+show end to end roundtrip delay (sniffer >= 27.1) [VS-920]
+speed optimisation in cdr_summary reports (sql optimisation for alerts and reports (concurrent calls)) [VG-2202]

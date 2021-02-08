@@ -1,0 +1,3 @@
+when merging calls sip history also merge rtp streams
+redesign FAX PDF link in CDR
+update voipmonitor binary to the latest 10.0.30 fixing audio decode for multiple RTP streams

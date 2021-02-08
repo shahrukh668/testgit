@@ -1,0 +1,2 @@
+update vm binary to the latest (fixes audio resample)
+use packets count indication '<3' in 'sip history' if cdr_rtp.received==0

@@ -1,0 +1,15 @@
+fix custom GEOIP in active calls map (fix check ip in subnet) [VG-2091]
+fix potential issue with duplicity of expander-id between 'customer geoip' panel and window 
+better output in the 'missing coordinates for private network' window.
+allow to search PDV sum, PDV avg in RTP tab CDR filter form [VG-2098]
+add mos_f1/f2/adapt_min values in cdr filter form (rtp tab) [VG-2055]
+Fix typo, 4 hours are 14400 seconds
+increase timeout when getting pcap file (new configuration option GET_PCAP_SELECT_TIMEOUT) [VG-2097]
+fix register state filter (filtering for unregister) [VG-2113]
+add support for state 'global' for capture column spool_2 [VS-1071]
+fix dashboard link if there is dashboard with the same name [VG-2119]
+fix issue with 'force index (calldate)' in cdr when index calldate does not exists 
+fix login by SID (if set sessionname_by_server_floder) [VG-2071]
+modify formula for xPDV to delay_sum/delay_cnt (instead of /connect_duration) [VG-2115]
+update vm binary to the latest version 
+fix issue with rtp charts in combination of natalias and missing cdr_rtp.index column [VG-2121]

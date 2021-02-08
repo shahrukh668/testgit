@@ -1,0 +1,3 @@
+Fix 16.12 segfaults for custom language setting
+Give user feedback in settings -> common settings when user presses a button (to be sure it does something)
+update to the latest vm/bin (19.0) which activates new SIP reassembler

@@ -1,0 +1,4 @@
+update vm binary which fixes audio decode for calls which have RTP stream ending with comfort noise (fixes GUI 12.15)
+fix apache/http 100% cpu usage for .graph charts since sniffer >= 14
+add otional parameter calldate (YYYY-MM-DD) to api function getVoiceRecording which signifficantly speeds up searching for call-id (and use 3-pass search for cdr if searching by call-id without parameter calldate: 1st-pass - find in today, 2nd-pass - find in yes
+

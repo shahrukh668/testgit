@@ -1,0 +1,4 @@
+Update vm binary which fixes audio conversion (missing caller/called) in case the audio is changing IP address (NAT) 
+Implement spool override in capture rules (requires sniffer >= 16.2) which allows to keep some recordings for longer time than main spool [VG-57]
+Fix showing dashboard/map templates if user changes permissions [VG-957]
+Fix showing wrong times in dashboards times for some cases (timezone issues) [VG-966]

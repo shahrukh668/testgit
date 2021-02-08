@@ -1,0 +1,4 @@
+Fix tools - mtr if mtr binary is in non standard path
+In user domain restriction implement negation (exclusion) for certain domains (exclamation mark prefix) 
+Show SIP domain in active calls and Implement user SIP domain filter in active calls - active calls will be filtered according to user domain restriction (needs the latest sniffer 10.0RC10)
+Redesign timeout alerts in alert section and add more alert types (needs sniffer >= 10.0RC10) 

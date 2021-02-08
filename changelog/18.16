@@ -1,0 +1,5 @@
+fix false positive alerts TimeWithoutCall [VG-1469]
+Hide cdr note if cdr_note is not present [VG-1450]
+add cdr summary api command: reportSummary - example: echo '{"task": "reportSummary", "user": "USER", "password": "PASSWORD", "params": {"report_name": "test summary", "datetime_from": "2017-12-20", "datetime_to": "2017-12-20"}}' | php api.php [VG-1464]
+update vm binary to the latest
+fix create table cdr_note when partitions are not used

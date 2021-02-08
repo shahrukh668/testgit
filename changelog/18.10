@@ -1,0 +1,8 @@
+update vm binary which fixes decoding audio when packets has VSS-Monitoring ethernet trailer
+enhance realtime calls map [VG-1071]
+sip history - add support for no-local ip adresses on both side (fixes SDP) [VS-703]
+allow hide new realtime calls map for users/group [VG-1436]
+do not timeout when updating geoip db 
+test the existence of the a/b_rtcp_fraclost_pktcount columns before it is used in alerts [VG-1437]
+fix download ss7-pcap if sniffer run with option tar=no
+check if pcap exists on remote sniffers which can be enabled in GUI settings (DETECT_FILES_IN_REMOTE_SENSORS) for case tar option in /etc/voipmonitor.conf is set to "no" [VG-1435]

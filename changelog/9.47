@@ -1,0 +1,2 @@
+- stream OGG vorbis to FF and chrome when playing audio to signifficantly reduce time to load audio
+- fix audio player for Safari for > 48khz sound cards

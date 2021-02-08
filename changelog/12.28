@@ -1,0 +1,3 @@
+save panels in dashboard even if they are undocked 
+fix blank window in setting in cdr groups -> charts 
+fix alerts if time was set over midnight (like 22:00 - 15:00) VG-783

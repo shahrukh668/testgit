@@ -1,0 +1,14 @@
+new REGISTER alerts type (active register alert, unregister alert, failed register alert, register UA alert, short registration alert, multiple registration alert, expire alert, RRD alert) (requires sniffer >= 17.1
+fix close audio player before complete load data [VG-987]
+new chart series - mos/jitter/loss/rtcp/pdv and more are now available as interval type (packet loss distribution can be now seen in intervals in one chart). Settings -> CDR charts were modified to use those new type of charts [VG-757]
+fix audio player for short buffers 
+fix compatibility with older tshark when filtering audio streams in audio player [VG-959]
+API call get pcap now does not merge http packets (only on request with parameter with_http [VG-996]
+added button reload in alerts toolbar for refreshing data [VG-998] 
+fix filtering by id sensor in register section [VG-999]
+allow audio extraction also for T.38 classified call [VS-403]
+fix template order in cdr filter, cdr chart, dashboard and network map [VG-759]
+split user rights for active call audio listen and CDR play instead of only allow listen to audio [VG-772]
+show t38 packets in sip history ladder (like wireshark) [VG-792]
+dashboard default template PDD is now PDD interval instead of PDD 95%
+updated vm binary which fixes audio decode for some type of calls

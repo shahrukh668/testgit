@@ -1,0 +1,8 @@
+fix AMR-WB
+fix dashboard interval this month (it showed previous month at 1.) [VG-2146]
+apply cdr group filter also in export csv, revaluation billing, batch download, delete cdr [VG-2148]
+rtp stream analyzer - fix issue with long transit
+add options/subscribe/notify charts in daily reports [VG-1981]
+add html, pdf, png to api function reportSummary [VG-2044]
+filter cdr by sdp/media types audio/image/video (requires sniffer 26.19) [VS-559] 
+add last SIP response description column (named as lastSIPresponseDesc) to the cdr cvs export [VG-2149]

@@ -1,0 +1,2 @@
+Change ASR,ACD,onewaystream, CallWithNoRTP, GetMinutesWithoutCall, compute billing in alerts summary and filters for all calls with connect_duration=0 - in other words connected calls with connect duration >0 AND < 1 second (which is 0 in database) were treated as not connected calls
+update vm binary to the latest (it fixes unpacking pcap from tar.gz in some cases) 

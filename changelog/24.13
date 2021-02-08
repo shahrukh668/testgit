@@ -1,0 +1,13 @@
+add charts for SIP OPTIONS / SUBSCRIBE and NOTIFY [VG-1957]
+add area charts for top source/destination domain or IPs for CDR/MESSAGES/OPTIONS/NOTIFY/SUBSCRIBE [VG-1021]
+add dashboard panels for new chart types 
+allow cidr/netmask in RTP IP:port and SDP IP:port filter [VG-1976]
+try DNS resolve if IP/Net is not recognized in the cdr Search form [VG-1199]
+fix slow main menu loading 
+change order of the series in several templates like loss/delay (those where there are percentiles and avg) so they are properly rendered [VG-1987]
+regroup / move search item related to IP to be more consistent [VG-1992]
+automatically resize/move rtp stream .graph window [VG-1990]
+fix group by codecs which were not using charts binary 
+show all RTP captured streams when selecting RTP streams by clicking on IP [VS-1030]
+use full width of row expander for width of charts in CDR.SummaryPanel [VG-1995]
+remove whole line (instead of clearing it) when removing chart series in chart configuration so user do not need reorganise them [VG-1989]

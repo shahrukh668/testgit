@@ -1,0 +1,33 @@
+.ux-flag-cs {
+	background-image: url(../images/flag-cs.png) !important;
+}
+.ux-flag-sk {
+	background-image: url(../images/flag-sk.png) !important;
+}
+
+.ux-flag-en {
+	background-image: url(../images/flag-en.png) !important;
+}
+
+.ux-icon-combo-icon {
+	background-repeat: no-repeat;
+	background-position: 0px 1px;
+	width: 18px;
+	height: 14px;
+}
+
+/* X-BROWSER-WARNING: this is not being honored by Safari */
+.ux-icon-combo-input {
+	padding-left: 25px;
+}
+
+.x-form-item-body .ux-icon-combo-icon {
+	top: 4px;
+	left: 5px;
+}
+
+.ux-icon-combo-item {
+	background-repeat: no-repeat ! important;
+	background-position: 3px 50% ! important;
+	padding-left: 24px ! important;
+}

@@ -1,0 +1,28 @@
+table.cdr_expand_table {
+	border-collapse: collapse;
+}
+
+.cdr_expand_table th {
+	font-family: tahoma,arial,verdana,sans-serif;
+	font-size: 11px;
+	color: #606060;
+	background-color: #C5C5C5;
+	background-image: -moz-linear-gradient(center top, #F9F9F9, #E3E4E6);
+	background-image: -webkit-linear-gradient(top, #F9F9F9, #E3E4E6);
+	padding: 4px;
+	text-align: center;
+	text-transform: uppercase;
+}
+
+.cdr_expand_table td {
+	font-family: tahoma,arial,verdana,sans-serif;
+	font-size: 11px;
+	color: #505050;
+	background: none repeat scroll 0 0 #FFFFFF;
+	padding: 4px;
+}
+
+.cdr_expand_table td a:link, .cdr_expand_table td a:visited {
+	color: #505050;
+	text-decoration: none;
+}

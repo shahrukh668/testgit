@@ -1,0 +1,2 @@
+Add support for REGISTER -> Active RRD column (round trip time between register - 200ok) which is implemented in sniffer since 12.6
+In CDR detail graph draw red line if there are consecutive loss instead of representing it with one red pixel

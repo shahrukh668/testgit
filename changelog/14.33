@@ -1,0 +1,3 @@
+Fix racecondition in charts binary which can lead to slow php render method rarely
+do not force index for some queries for mysql >= 5.6 [VG-939]
+fix audio player (and audio download) when CDR is shared through local/public share [VG-952]

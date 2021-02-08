@@ -1,0 +1,6 @@
+fix find MESSAGE by its content in search form when HIDE_MESSAGE is set
+add clear button co delay-combo in form alert & report
+eliminate zero prefix in get number length in check number is international
+fix issue with old chart configuration compatibility in daily reports
+fix stop alert / reports stop generation for preview and send
+fix alerts header for fraud alerts - suppress information about list adresses / numbers

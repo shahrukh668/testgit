@@ -1,0 +1,4 @@
+fix search form stuck (when clicking on search the browser might hang randomly) [VG-1035]
+charts - use day interval period for subselects in filter query (fixes slow query for some type of charts)
+fix sorting by ID in cdr and message [VG-1034]
+fix apply parameter report_last_days in reports [VG-1029]

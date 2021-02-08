@@ -1,0 +1,6 @@
+in CDR summary report grid add by minutes, hours and days (to be able to see time distribution in grid table) [VG-2176]
+enable show all dashboards for administrators in 'manage dashboards' [VG-2182]
+automatically convert ip-fields to ipv6 if sniffer is ipv6 enabled [VG-2183]
+do not fill ipv6 geoip if GUI is not ipv6 enabled [VG-2187]
+fix error 'The operation can not be started because another process is in progress' [VG-2187]
+fix mysql 8 compatibility for some report preview

@@ -1,0 +1,7 @@
+add direct URL for current CDR filter in CDR toobar -> menu -> 'URL for current filter' which opens the GUI with the same filter
+change PDV calculation which is now delimited by connect duration instead of doing sum of all PDV which is useless 
+change order in fetch files from sensor from 'local,remote' to 'remote,local' which fixes downloading pcap in multisensor environment
+add new option can-graphs which disables/enables graphs for users
+fix dashboard which showed empty information after configuration set 
+add show http data via external transaction id in cdr and messages - in menu settings (blue wrench)
+if license dialog is skipped never show it again (it is available in menu -> settigns -> license)

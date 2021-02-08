@@ -1,0 +1,643 @@
+#!/bin/bash
+
+__VERSION=1.4
+
+# first argument is GUI file (TODO::: check if file is for propper PHP version)
+# second argument causes script to be verbose 0-off 1-on
+# third argument is FULLPATH to dest DIR (if defined, exist and writable - scanning of dest DIRs is skipped)
+
+#__COLORS=0	#value is automagicaly set by checkTput function
+			#You can override it by uncomment thid with 1 or 0 set
+			#0 for disable colors output
+			#1 for enable colors
+
+#Examples of usage:
+
+# 1a) Installing from file - You will be asked for destination directory 
+# bash install-gui /tmp/voipmonitor-gui-15.5-SVN.54.tar.gz
+#
+# 1b) Installing from file more verbosely and forcefully (- You will be asked for destination directory )
+# bash install-gui /tmp/voipmonitor-gui-15.5-SVN.54.tar.gz 1
+#
+#
+# 2a) Installing to predefined destination folder 
+# bash install-gui /tmp/voipmonitor-gui-15.5-SVN.54.tar.gz 0 /var/www/voipmonitor
+#
+# 2b) Do it more verbosely and more forsefully
+# bash install-gui /tmp/voipmonitor-gui-15.5-SVN.54.tar.gz 1 /tmp/test
+
+
+__VERBOSE=0
+if [ $# -ge 2 ]; then
+	if [ "yes$2" == "yes1" ]; then
+		__VERBOSE=1
+	fi
+fi
+
+
+function getAppMajorMinor {
+	__result="$1"
+	local _appfile="$2"
+	local _major=$(basename "$_appfile"|cut -d '-' -f2|cut -d'.' -f1)
+	local _minor=$(basename "$_appfile"|cut -d '-' -f2|cut -d'.' -f2)
+
+#	verbose "Getting majorMinor from $_appfile"
+	eval $__result="'${_major}.${_minor}'"
+}
+
+function findDefaultGUIDir {
+	__result="$1"
+	local defdir=''
+
+	if [ -d "/var/www/html" ]; then
+		defdir='/var/www/html'
+	else
+		defdir='/var/www'
+	fi
+
+	eval $__result="'${defdir}'"
+}
+
+function checkInstallFile {
+	local _fileIn="$1"
+    if [ ! -f "$_fileIn" ]; then
+        echo $(printn "File ")$(printz "$_fileIn")$(printn " does not exist.")
+		echo $(printp "Note: ")$(printps "$0")$(printn " requires fullpath to a GUI installation file as a first argument (w.tar.gz)")
+		echo
+        exit_command 1
+	else
+        verbose "$(printn "File ")$(printp "$_fileIn")$(prints " found")$(printn ". ")"
+		verbose "$(prints "Scanning ")$(printn ".. ")"
+
+		local _versionfile=$(tar -tf "$_fileIn" 2>/dev/null|grep -P "app-[0-9]{1,2}.[0-9]{1,2}.js")
+		if [ "no$_versionfile" == "no" ]; then
+			echo $(printn "File ")$(printz "$_fileIn")$(printn " does not contain app-major.minor or it is ")$(printz "not")$(printn " .tar.gz ")$(printz "web GUI")$(printn " file.")
+			exit_command 1
+		fi
+
+		getAppMajorMinor _version "$_versionfile"
+		echo $(prints "Proceeding")$(printn " with installation of version ")$(printp "$_version")$(printn " from file ")$(printp "$_fileIn")$(printn ".")
+		echo
+    fi
+}
+
+function checkDestDir {
+	local _dirIn="$1"
+	if [ "no$_dirIn" == "no" ]; then
+		return 0;
+	fi
+
+    if [ ! -d "$_dirIn" ]; then
+        echo $(printn "Dir ")$(printz "$_dirIn")$(printn " does not exist.")
+		echo
+		if [ $__VERBOSE -eq 1 ]; then
+			echo $(printp "Creating")$(printn " dir ")$(printn "$_dirIn")$(printn ".")
+			cmd "mkdir -p" "$_dirIn"
+		else 
+			exit_command 1
+		fi
+	fi
+
+	if [ ! -w "$_dirIn" ]; then
+		echo $(printn "Dir ")$(printz "$_dirIn")$(printn " is not writable.")
+		echo
+		exit_command 1
+	fi
+
+    verbosen "$(printn "Dir ")$(printp "$_dirIn")$(prints " found")$(printn " and writable. ")"
+    verbose "$(prints "Setting")$(printn " destination dir ")$(printn "to ")$(printp "$_dirIn")$(printn " .")"
+
+	return 1;
+}
+
+function backupGUI {
+	__result="$1"
+
+	local _majorMinor="$2"
+	local _guidir="$3"
+	local _package="$4"
+
+	local _backupdir=''
+	local backup="1";
+
+	verbosen "$(printp 'Scanning ')$(printps "$_guidir")$(printn " ")"
+	#if [ $(ls -A "$_guidir" ) 2> /dev/null ]; then
+	if [ "$(ls -A "$_guidir" )" ]; then
+		verbose ""
+		echo
+		local _backupdir="$_guidir/backup-$_majorMinor";
+		verbose "Starting $(printps "backup")$(printn " of ")$(printp "$_guidir")$(printn " to ")$(printp "$_backupdir")."
+		cmd "rm -rf" "$_backupdir"
+		cmd "mkdir -p" "$_backupdir"
+##		cmdu "shopt -s dotglob; mv" "$_guidir/*" "$_backupdir/" #it not works
+		if [ $__VERBOSE -eq 1 ]; then
+			echo "$(prints "Exe")$(printn "cuting command: ")$(printp "shopt -s dotglob; mv '$_guidir/'* '$_backupdir/' 2> /dev/null")$(printn "")";
+		fi
+		`shopt -s dotglob; mv "$_guidir/"* "$_backupdir/" 2> /dev/null`
+	else
+		verbose "is EMPTY, no need backup."
+		local backup="0"
+	fi
+
+	cmd "cp -rf" "$_package" "$_guidir/w.tar.gz"
+	if [ $__VERBOSE -eq 1 ]; then
+		echo "$(prints "Exe")$(printn "cuting command: ")$(printp "tar xzf '$_guidir/w.tar.gz' -C '$_guidir/'")$(printn "")";
+	fi
+	`tar xzf "$_guidir/w.tar.gz" -C "$_guidir/"`
+	if [ $__VERBOSE -eq 1 ]; then
+		echo "$(prints "Exe")$(printn "cuting command: ")$(printp "mv 'voipmonitor-gui-*-SVN*/*' '$_guidir'")$(printn "")";
+	fi
+	`cd $_guidir; mv ./voipmonitor-gui-*-SVN*/* ./`
+
+	if [ "yes$backup" == "yes1" ]; then
+		cmdu "cp -a" "$_backupdir/key.php" "$_guidir/"
+		if [ -f "$_backupdir/config/configuration.php" ]; then
+			local configpresent="yes"
+			cmd "cp -a" "$_backupdir/config/configuration.php" "$_guidir/config/"
+			customconf=`cat "$_guidir/config/configuration.php" |grep "\"CUSTOM_CONFIGURATION\""|cut -d '"' -f 4`
+			if [ "yes$customconf" != "yes" ]; then 
+				cmdu "cp -a" "$_backupdir/config/$customconf" "$_guidir/config/"
+			fi
+
+			mysqlpass=`cat "$_guidir/config/configuration.php" |grep "\"MYSQL_PASS\""|cut -d \' -f 2`
+			mysqluser=`cat "$_guidir/config/configuration.php" |grep "\"MYSQL_USER\""|cut -d '"' -f 4`
+			mysqlhosttmp=`cat "$_guidir/config/configuration.php" |grep "\"MYSQL_HOST\""|cut -d '"' -f 4`
+			mysqlhost=`echo $mysqlhosttmp |cut -d ':' -f 1`
+			mysqlport=`echo $mysqlhosttmp: |cut -d ':' -f 2`
+			mysqldb=`cat "$_guidir/config/configuration.php" |grep "\"MYSQL_DB\""|cut -d '"' -f 4`
+		fi
+
+		cmdu "cp -a" "$_backupdir/scripts/custom_login.php" "$_guidir/scripts/"
+		cmdu "cp -a" "$_backupdir/bin/wkhtml*" "$_guidir/bin/"
+		cmdu "cp -a" "$_backupdir/bin/phantomjs*" "$_guidir/bin/"
+		cmdu "cp -a" "$_backupdir/bin/sox*" "$_guidir/bin/"
+		cmdu "cp -a" "$_backupdir/images/logo-custom.png" "$_guidir/images/"
+		cmdu "cp -ra" "$_backupdir/.ssh" "$_guidir/"
+		cmdu "rm -rf" "$_guidir/bin/lic"
+		cmdu "mv " "$_backupdir/bin/lic*" "$_guidir/bin/"
+		cmdu "rm -rf" "$_backupdir/backup-*"
+
+		if [ $__VERBOSE -eq 1 ]; then
+			echo "$(prints "Exe")$(printn "cuting command: ")$(printp "cd $_guidir; rm -rf voipmonitor-gui-*-SVN*")$(printn "")";
+		fi
+		`cd $_guidir; rm -rf voipmonitor-gui-*-SVN*`
+
+		if [ "$configpresent" == "yes" ]; then
+			if [ "no$mysqlport" == "no" ]; then
+				mysqloptport=''
+			else
+				mysqloptport=" -P $mysqlport"
+			fi
+			if [ "no$mysqluser" == "no" ]; then
+				mysqluser="root"
+			fi
+
+			if [ "no$mysqlpass" == "no" ]; then
+				mysql -u $mysqluser -h $mysqlhost $mysqloptport $mysqldb -e 'DELETE FROM `system` WHERE `type` = "new_version_information";' 2> /dev/null
+			else
+				mysql -u $mysqluser -h $mysqlhost $mysqloptport -p$mysqlpass $mysqldb -e 'DELETE FROM `system` WHERE `type` = "new_version_information";' 2> /dev/null
+			fi
+			if [ "$?" != "0" ]; then
+				echo Mysql query $(prints "failed"):
+				echo $(printps "DELETE FROM \`$mysqldb\`.\`system\` WHERE `type` = \"new_version_information\"")$(printn "")
+				echo Please, run the highlighted query in mysql manually.
+				echo 
+			fi
+		fi
+	fi
+#setting destdir permissiions to webserver
+	cmdu "chown -R www-data" "$_guidir"
+	cmdu "chown -R apache" "$_guidir"
+
+	eval $__result="'${_backupdir}'"
+}
+
+function searchForGUI {
+	__resultDir="$1"
+	__majorMinor="$2"
+
+	local defaultDir="$3"
+	local ask="$4"
+	local dirsinline=''
+	local _choice=''
+	local _entered=''
+	local _majorMinor=0
+
+	verbose "$(printp 'Searching')$(printn ' in ')$(prints $defaultDir)$(printn ' for GUI installations.')"
+
+#	LOCATIONS=`find "$defaultDir"|grep -P "app-[0-9]{1,2}.[0-9]{1,2}.js"|grep -v -P "backup-[0-9]{1,2}.[0-9]{1,2}"`
+#	LOCATIONS=`find "$defaultDir" -type f -printf '%T@ %p\n' |grep -P "app-[0-9]{1,2}.[0-9]{1,2}.js"|grep -v -P "backup-[0-9]{1,2}.[0-9]{1,2}"|sort -k 1nr|sed 's/^[^ ]* //'`
+	LOCATIONS=`find "$defaultDir" -type f -printf '%T@ %p\n' |grep -P "app-[0-9]{1,2}.[0-9]{1,2}.js"|grep -v -P "backup-"|sort -k 1nr|sed 's/^[^ ]* //'`
+
+
+	IFS=$'\n' declare -a 'ARLOC=($LOCATIONS)'
+
+	for index in "${!ARLOC[@]}"; do
+		directory=$(dirname "${ARLOC[index]}")
+		echo -n $(prints "${index}")$(printn ") $directory")
+		getAppMajorMinor _majorMinor "${ARLOC[index]}"
+		echo $(printn " (v.")$(printp "$_majorMinor")$(printn ")")
+		local dirsinline="$dirsinline \"${directory}\""
+	done
+	IFS=$oIFS
+	
+
+	if [[ "not${LOCATIONS}" == "not" ]] && [[ "yes$ask" == "yes" ]]; then
+		index=0
+		echo
+		echo $(printp "No")$(printn " previous installation ")$(printp "found.")
+		echo $(printps " You")$(printn " need to set directory for GUI installation:")
+		askDirectory _entered "$defaultDir"
+	else
+		if [[ "yes$ask" == "yes" ]]; then
+			index=$((index+1))
+			echo $(prints "${index}")$(printn ") set directory ")$(printps "manualy")$(printn " where to install GUI")
+			echo
+			echo -n $(printps "Choose")
+			askNumber _choice ' where to install GUI? Inserting a number: ' 0 $index 0
+	
+			if [ "end$_choice" == "end$index" ]; then
+				askDirectory _entered "$defaultDir"
+				if [ -d "$GUIdir" ]; then
+					isApp=`find "$_entered" -maxdepth 1 -type f -printf '%p\n' |grep -P "app-[0-9]{1,2}.[0-9]{1,2}.js"|head -n1`
+					getAppMajorMinor _majorMinor "$isApp"
+				else
+					_majorMinor=0
+				fi
+			else
+				local _entered=$(dirname "${ARLOC[_choice]}")
+				getAppMajorMinor _majorMinor "${ARLOC[_choice]}"
+			fi
+		else
+			_entered="$3"
+			getAppMajorMinor _majorMinor "$3"
+		fi
+	fi
+
+	eval $__resultDir="'${_entered}'"
+	eval $__majorMinor="'${_majorMinor}'"
+}
+
+function welcome {
+	clear
+	echo "$(prints "Welcome")$(printn " to")$(printps " voipmonitor GUI")$(printn " installation script version ")$(printp "$__VERSION")"
+	echo
+	echo
+	oIFS="$IFS"
+}
+
+function trap_command {
+	#reseting color and IFS and echo resetting for undefined behaviour when CTRL-C is presed inside "read -s" command when CTRL+C is pressed and exit
+	if [ "del$tempDir" != "del" ]; then
+		removeDir "$tempDir"
+	fi
+
+	echo $(printn "Exitting..")
+	stty echo
+	IFS=$oIFS
+	exit 130
+}
+
+function exit_command {
+	#reseting color and IFS and echo resetting for undefined behaviour when CTRL-C is presed inside "read -s" command when CTRL+C is pressed and exit
+	if [ "ok$1" == "ok0" ]; then
+		 echo $(printn "Installation done.")
+	else
+		 echo $(printn "Script exited abnormally...")
+	fi
+	#stty echo
+	IFS=$oIFS
+	exit $1
+}
+
+function prints {
+	if [ $__COLORS -eq 1 ]; then
+		echo "$(tput sgr 0)$(tput bold)$(tput setaf 7)$1"
+	else
+		echo "$1"
+	fi
+}
+
+#print possible selected
+function printps {
+	if [ $__COLORS -eq 1 ]; then
+		echo "$(tput sgr 0)$(tput bold)$(tput setaf 2)$1"
+	else
+		echo "$1"
+	fi
+}
+
+#print possible
+function printp {
+	if [ $__COLORS -eq 1 ]; then
+		echo "$(tput sgr 0)$(tput setaf 2)$1"
+	else
+		echo "$1"
+	fi
+}
+
+#print impossible
+function printz {
+	if [ $__COLORS -eq 1 ]; then
+		echo "$(tput sgr 0)$(tput setaf 1)$1"
+	else
+		echo "$1"
+	fi
+}
+
+#print neutral
+function printn {
+	if [ $__COLORS -eq 1 ]; then
+		echo "$(tput sgr0)$1"
+	else
+		echo "$1"
+	fi
+}
+
+function checkTput {
+	if [ "undefined$__COLORS" == "undefined" ]; then
+		tp=$(which tput 2> /dev/null)
+		retval=$(echo $?)
+		if [ $retval -eq 0 ]; then
+			__COLORS=1
+		else
+			__COLORS=0
+		fi
+	fi
+}
+
+function cmd {
+
+	#TODO: Fix that star '*' can be only at end of second argument
+	local arg2=$2
+	local lPos=$((${#arg2}-1))
+	local charAtEnd=${arg2:$lPos:1}
+	local star=""
+	
+	if [ $# -ge 2 ]; then 
+		if [ "$charAtEnd" = "*" ]; then
+			local star="*"
+			local arg2=${arg2:0:$lPos}
+		fi
+	fi
+
+	if [ $__VERBOSE -eq 1 ]; then
+		echo "$(prints "Exe")$(printn "cuting command: ")$(printp "$1 $2 $3 $4 $5")$(printn "")";
+		case "$#" in 
+			"1" ) $1;;
+			"2" ) $1 "$arg2"$star ;;
+			"3" ) $1 "$arg2"$star "$3";;
+			"4" ) $1 "$arg2"$star "$3" "$4";;
+			*) exit_command 4;;
+		esac
+	else
+		case "$#" in 
+			"1" ) $1 >/dev/null 2>&1 ;;
+			"2" ) $1 "$arg2"$star >/dev/null 2>&1 ;;
+			"3" ) $1 "$arg2"$star "$3" >/dev/null 2>&1 ;;
+			"4" ) $1 "$arg2"$star "$3" "$4" >/dev/null 2>&1 ;;
+			*) exit_command 4;;
+		esac
+	fi
+	local result=$?
+
+	if [ "a$result" != "a0" ]; then
+		echo "$(printz "Problem")$(printn " while processing command '")$(printp " $1 $2 $3 $4")"
+		echo "$(printn "Returned error code: ")$(printz "$result")"
+		exit_command 3
+	fi
+}
+
+function cmdu {
+	#TODO: Fix that star '*' can be only at end of second argument
+	local arg2=$2
+	local lPos=$((${#arg2}-1))
+	local charAtEnd=${arg2:$lPos:1}
+	local star=""
+	
+	if [ $# -ge 2 ]; then 
+		if [ "$charAtEnd" = "*" ]; then
+			local star="*"
+			local arg2=${arg2:0:$lPos}
+		fi
+	fi
+	if [ $__VERBOSE -eq 1 ]; then
+		echo "$(prints "Exe")$(printn "cuting command: ")$(printp "$1 $2 $3 $4 $5")$(printn "")";
+		case "$#" in 
+			"1" ) $1;;
+			"2" ) $1 "$arg2"$star ;;
+			"3" ) $1 "$arg2"$star "$3";;
+			"4" ) $1 "$arg2"$star "$3" "$4";;
+			*) exit_command 4;;
+		esac
+	else
+		case "$#" in 
+			"1" ) $1 >/dev/null 2>&1 ;;
+			"2" ) $1 "$arg2"$star >/dev/null 2>&1 ;;
+			"3" ) $1 "$arg2"$star "$3" >/dev/null 2>&1 ;;
+			"4" ) $1 "$arg2"$star "$3" "$4" >/dev/null 2>&1 ;;
+			*) exit_command 4;;
+		esac
+	fi
+}
+
+function removeDir {
+	local rmDir="$1"
+	verbose "$(printn "Removing directory ")$(printp "$rmDir")$(printn "") "
+	cmd "rm -r" "$rmDir"
+}
+
+function verbosen {
+	if [ $__VERBOSE -eq 1 ]; then
+		echo -n "$1"
+	fi
+}
+
+function verbose {
+	if [ $__VERBOSE -eq 1 ]; then
+		echo "$1"
+	fi
+}
+
+function askDirectory {
+	local _dir="$1"
+	local defaultDir="$2"
+	local question="$(printn "Please, insert")$(printp " directory ")$(prints "[")$(printps "$defaultDir")$(prints "]")$(printn ":")"
+	echo -n "$question"
+	read -e -p" " inserted
+	echo -n $(printn "")
+
+	if [ "a$inserted" == "a" ]; then
+		local inserted="$defaultDir"
+	fi
+	eval $_dir="'${inserted}'"
+}
+
+
+
+#2 parameters only ask for number 
+#3 args ask for number and offer default value
+#4 args ask for number and check limits 2-lower limit 3-upper limit
+#5 args ask for number check limits and offer default value
+function askNumber {
+	local __result="$1"			#first parametr is readed Value and will be returned
+	local question="$(printn "$2")"
+	local say="no"		#define that no default value is passed
+	local limits="no"
+	case $# in
+		"3" ) local def=$3
+			local say="$(prints "$3")"
+			local question="$question$(prints "[")$(printps "$3")$(prints "]")"
+			;;
+		"4" ) local limitl=$3
+			local limith=$4
+			local limits="yes"
+			;;
+		"5" ) local def=$5
+			local limitl=$3
+			local limith=$4
+			local limits="yes"
+			local say="$(prints "$5")"
+			local question="$question$(prints "[")$(printps "$5")$(prints "]")"
+			;;
+	esac
+
+
+	while true; do
+		echo -n "$question "
+		echo -n $(prints "")
+		read -e -p" " value
+		echo -n $(printn "")
+		if [ "$say" != "no" ]; then
+			if [ "nula$value" == "nula" ]; then
+				value=$def
+			fi
+		fi
+
+		#check for value is number, else redirect error to dev null
+		if [ "$value" -eq "$value" ] 2>/dev/null; then
+			if [ "$limits" == "yes" ]; then
+				if [ $value -ge $limitl ]; then
+					if [ $limith -ge $value ]; then	#limits check passed
+						eval $__result="'${value}'"
+						return 0
+					else
+						local sayh="Please input number equal or lower than "
+						echo "$(printz "$sayh")$(printp "$limith")$(printn ".")"
+					fi
+				else
+					local sayh="Please input number equal or greater than "
+					echo "$(printz "$sayh")$(printp "$limitl")$(printn ".")"
+				fi
+			else
+				#echo $(prints "$value")	#already visible when inputing by read
+				eval $__result="'${value}'"
+				return 0
+			fi
+		else
+			echo "$(printz "Please, try input a number again.")$(printn "")"
+		fi
+	done
+	return 0
+}
+
+function ask2 {
+	local var1=$2
+	local var1=${var1^}
+	local key1=${var1::1}
+	local var2=$3
+	local var2=${var2^}
+	local key2=${var2::1}
+    if [ $# -eq 4 ]; then
+		local def=$4
+		local def=${def::1}
+		local def=${def^}
+		if [ "$def" == "$key1" ]; then
+			local say="$(prints "$var1")"
+			local def=0
+			local question="$(printn "$1 (")$(prints "[")$(printps "$var1")$(prints "]")$(printn "/")$(printp "$var2")$(printn ") ")"
+		else
+			local say="$(prints "$var2")"
+			local def=1
+			local question="$(printn "$1 (")$(printp "$var1")$(printn "/")$(prints "[")$(printps "$var2")$(prints "]")$(printn ") ")"
+		fi
+		local sayhelp="$(printz "Please press ")$(printp "ENTER")$(printz " for answering '")$(printp "$say")$(printz "' or answer by pressing '")$(printp "$key1")$(printz "' or '")$(printp "$key2")$(printz "'.")"
+
+	else
+		local say=69
+		local sayhelp="$(printz "Please answer '")$(printp "$key1")$(printz "' or '")$(printp "$key2")$(printz "'.")"
+		local question="$(printn "$1 (")$(printp "$var1")$(printn "/")$(printp "$var2")$(printn ") ")"
+	fi
+
+    while true; do
+		echo -n  "$question "
+        read -s -n1 key
+		local key=${key^}
+        case $key in
+            "$key1" ) echo $(prints "$var1")$(printn ""); return 0;;
+            "$key2" ) echo $(prints "$var2")$(printn ""); return 1;;
+            "") if [ "$say" != "69" ]; then
+                    echo $say$(printn "")
+					return $def
+				else
+					echo
+					echo "$sayhelp"
+                fi
+                ;;
+            *)
+				echo
+                echo "$sayhelp"
+            ;;
+        esac
+    done
+}
+
+#setting CTRL+C command
+trap 'trap_command' SIGINT
+
+#0-a Check for tput command and enable / disable colors. __COLORS=1 / __COLORS=0
+checkTput
+
+#0. Say hello and check that installation file was passed as 1. argument
+welcome
+
+checkInstallFile "$1"
+
+if checkDestDir "$3"; then
+	#1. Probe '/var/www' for location of GUI install, if not found ask for directory, IF NOT EXIST ask for create or enter another dir
+	findDefaultGUIDir defaultGUIDir
+	while true; do
+		searchForGUI GUIdir majorMinor "$defaultGUIDir"
+		if [ -d "$GUIdir" ]; then
+			break
+		else
+			echo
+			echo $(printn "Directory ")$(printps "$GUIdir")$(printn " not found.")
+			if ask2 "Should I create '$GUIdir' for You?" "yes" "no" "yes"; then
+				cmd "mkdir -p" "$GUIdir"
+				break
+			fi
+		fi
+	done
+else
+	searchForGUI GUIdir majorMinor "$3" no
+fi
+
+#2. Check if is dest Dir empty, if no create backup - last argument is GUI.tar.gz file
+#backupGUI backupDir $majorMinor "$GUIdir" "/home/w.tar.gz"
+echo $(prints "Please wait ..")$(printn ".")
+backupGUI backupDir $majorMinor "$GUIdir" "$1"
+
+#3. check if version of new GUI changed in compare to one in Dir if no make notice
+if [ $majorMinor == $_version ]; then
+	echo The version number of newly installed GUI did not changed, $(printps "please")
+	echo $(printn "logout and press CTRL+SHIFT+R in chrome to") $(printps "flush the cache of a browser") $(printn "then login again to GUI.")
+	echo
+else 
+	if [ $majorMinor == 0 ]; then
+		echo GUI was installed in new/empty directory, you need to configure GUI from browser now.
+		echo
+	fi
+fi
+
+echo $(printn "Done.")

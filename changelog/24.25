@@ -1,0 +1,3 @@
+Enable database IP reverse lookup by default.
+allow negation of the SIP response value in SIP response alert [VG-2081]
+add price columns in cdr view 'top calls' tab [VG-2013]

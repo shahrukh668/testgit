@@ -1,0 +1,3 @@
+don't allow pcap's upload if user don't confirm db tables creation [VG-2124]
+fix show error string in active calls if sensor is not connect in cloud mode
+fix length of column config_id in table chart_sniffer_series [VG-2143]

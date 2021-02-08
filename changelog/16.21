@@ -1,0 +1,2 @@
+use new t38 decoder for exporting faxes to PDF [VG-1181, VS-500, VS-420, VS-569, VG-1179, VG-1059, VS-571]
+fix blank screen after bin/* download/upgrade

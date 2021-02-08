@@ -1,0 +1,2 @@
+Update sniffer binary whcih fixes audio decoding when only called stream present
+Add G722.1 support (needs sniffer 9.4beta29 not yet released)

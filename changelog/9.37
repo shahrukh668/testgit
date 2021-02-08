@@ -1,0 +1,1 @@
+fix custom_login() PHP custom function which did not filled username in audit log entries. 

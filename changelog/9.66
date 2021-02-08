@@ -1,0 +1,3 @@
+Show icon in cdr indicating that the call was terminated by the sniffer timeouts and allow to search for such calls in CDR filter (missing BYE, absolute timeout etc.) 
+When deleting alerts delete automatically history in sent alerts instead of showing sql error. 
+Fix sent alerts combo not showing recent alerts [VG-523]

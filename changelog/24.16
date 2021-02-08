@@ -1,0 +1,6 @@
+allow to choose number of intervals on X axe for graphs in dashboard [VG-2025]
+Adjust loss/delay in CDR to make it more readable [VG-2004]
+fix issue with graph redraw in CDR when yesterday was selected [VG-2015]
+fix upgrading billing columns for higher precision [VS-1032]
+add rtp stream's duratin time into SIP history (needs sniffer 26.9) [VG-2008]
+fix alert watchdog over quota (blank groups and check previous intervals when aggregation is enabled) [VG-1991]

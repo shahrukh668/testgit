@@ -1,0 +1,7 @@
+delete expired capture rules from cron and not only upon user login [VG-1536]
+fix create filter for combination caler and called condition if one side has operator not [VG-1543]
+fix datetime when editing template [VG-1544]
+fix charts binary (kill old instances) [VG-1545]
+add wait indication when exporting cdr to csv [VG-1546]
+fix autoselect first item in combobox 'callerd_search_type' [VG-1547]
+fix chart calculation for overlapping intervals [VG-1548]

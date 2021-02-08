@@ -1,0 +1,2 @@
+fix show remote sniffer RRD charts in dashboard for remote sniffers 
+add tip for install rrdtool if this missing

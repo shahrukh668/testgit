@@ -1,0 +1,12 @@
+fix sensor name in chart 'realtime calls'  [VG-2125]
+when search for User-Agent do not treat space and ; as a logical and delimiter [VG-2132]
+allow quotation apostrophes in the mysql user and password [VG-2123]
+auto-delete template files /tmp/VM_VS* (it can grow signifficantly over time) [VG-2126]
+fix permissions of the create audio in the RTP stream analysis [VG-2134]
+fix time data format print in alert concurrent-calls if TIMEZONE different than SENSORS_TIMEZONE (cloud issue) [VG-2138]
+fix potential js issue in filter of sensor setting
+fix flickering in scrolling in group/grid
+fix 500 error page if license key expires [VG-2140]
+fix blocked user if user is in unblocked group [VG-2139]
+fix sensor ready after restart / upgrade [VS-1079]
+fix filter CDR in MOS interval interractive chart [VG-2142] 

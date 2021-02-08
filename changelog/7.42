@@ -1,0 +1,7 @@
+add support for remove HTTP columns in sip history
+add parameters for direct show chart in active calls - index.php?activecalls=1&hidegrid=1&hidemenu=1
+hide menu license for not admin users
+add help for field 'sip response' in sip response alert
+add IP group selection for seraching RTP IP in cdr filter form
+allow non admin user to hide tools->mtr 
+allow non admin user to hide group (sip responses) below the cdr grid 

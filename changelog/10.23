@@ -1,0 +1,2 @@
+Default timeout for pcap download from remote sniffer was only 5 seconds which is now extended so the pcap can be downloaded 
+Optimize pcap cache cleaning which can lead to unresponsivness GUI when downloading pcap files from remote sniffers

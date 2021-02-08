@@ -1,0 +1,3 @@
+fix hide columns in sip history 
+fix sort order in active calls  
+fix some php warnings in cron scripts 

@@ -1,0 +1,2 @@
+lower ammount of data in PHP SESSION to make GUI faster on some HW setups [VG-1333]
+fix cps_max, cps_avg in report 'CDR summary' [VG-1334]

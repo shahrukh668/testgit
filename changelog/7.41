@@ -1,0 +1,6 @@
+update vm binary to RC27 which fixes some audio decoding issues (when RTP port is the same as SIP 5060-5099)
+enable scroll in sip diagram in cdr / message share
+add set stream timeout (stream_set_timeout) to fsockopenCloudSniffer - fixes php.run many instances in case sniffer is down
+enable sip response 0 in charts 
+add layout with charts in messages
+

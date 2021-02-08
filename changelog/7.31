@@ -1,0 +1,2 @@
+update vm binary and fix 101 DLT error when converting audio for some sniffer configurations
+add option DISABLE_LIVE_SNIFFER to system configuration

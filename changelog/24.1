@@ -1,0 +1,13 @@
+add audio player to the new RTP stream analyses (+ small tweaks and enhancements), fix for too short stream without grid scroller, packet detail window manager, add tab layout for quick switch between streams [VG-1870]
+add mysql transaction isolation level (SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED)
+add chart series 'MOS Caller - intervals' and 'MOS Called - intervals' [VG-1793]
+add field 'by ip' (src, dst, both) in fraud sequential alert (needs sniffer 25.8) [VG-1915]
+add support for parallel processing alerts and reports - add parameter CRON_PARALLEL_TASKS [VG-1718]
+add support for multiple ports and port range in sniffer configuration [VG-1922]
+enable send 'empty report' for reports ConcurrentCallStat and CdrSummary [VG-1696]
+create mysql procedure get_legs_by_cid_for_callid(call_id varchar(255), interval_s int, num_length int, day_only date) [VG-1916]
+fix gui connection to the sniffer over ipv6 
+fix sip:history link via API [VG-1686]
+fix set advanced country prefixes / rules, fix condition for show fields in frame 'trim prefixes' [VS-970]
+fix layout for country indication if flag does not exists. add flag for md-sn [VG-1920]
+fix function ip_is_set for ipv6 [VG-1923]

@@ -1,0 +1,4 @@
+in CDR group bottom panel add more top calls levels (now it is possible to drill down by two levels) and speed up country grouping in general [VG-2174]
+add csv export button to the SIP Opt., Subsc., Notify menu [VG-2171]
+fix timezone issue if client web browser has different TZ than GUI [VG-2174]
+change price accuracy in billing setting to decimal(16,8) 

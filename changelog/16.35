@@ -1,0 +1,7 @@
+Display sip proxy in active calls section and allow filtering by it (needs sniffer >= 19.5) [VG-1246]
+enable menu item settings / sensors for users with option 'Enable sensors operation' [VG-1258]
+do not download all binaries again when upgrading [VG-1259]
+new gui configuration option 'Email header EOL' [VG-1252]
+fix sensor filter in active registers [VG-1254]
+add user option 'Enable 3D RTP Charts' [VG-1256]
+fix report generator ip filter when using negation [VG-1248]

@@ -1,0 +1,5 @@
+fix all charts RTP statistics (except MOS and all MAX values) which were delimited by all calls instead of calls which have RTP stream. In result jitter/loss avg / min and other values were lower than it should be. 
+fix loss calculation in CDR group window which was low in case there were a lot of connected calls without RTP sniffing and too high percentiles for the same reason. 
+fix date in active calls (requires sniffer >= 10.1.45) [VG-471]
+fix IE compatibility in cdr share page [VG-470]
+show graph also when user clicks on destination RTP IP in CDR row [VG-500]

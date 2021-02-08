@@ -1,0 +1,3 @@
+fix csv MESSAGE exports 
+send nonstandard sip ports when sharing CDR to share.voipmonitor.org which fixes missing TCP parts (or any packets on non standard SIP ports) in sip history
+fix SQL query when searching for calls with ringtime although it was not connected [VS-264]

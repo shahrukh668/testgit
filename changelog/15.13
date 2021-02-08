@@ -1,0 +1,5 @@
+in charts is now possible to add time offset so one can create two charts for comparing data between different periods (new wrench icon) [VG-880]
+fix show packet detail in sip history [VS-512]
+respect user filter restriction for legs by header/cid [VG-1051]
+fix - enable trend checkbox
+
